@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taskinator - Kanban Board</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .header nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.2);
+            transition: background 0.3s;
+        }
+        .header nav a:hover { background: rgba(255,255,255,0.3); }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 30px;
+            max-height: calc(100vh - 100px);
+            overflow: auto;
+        }
+        .column {
+            background: #e8ecf1;
+            border-radius: 12px;
+            padding: 16px;
+            min-height: 500px;
+        }
+        .column-header {
+            font-weight: 600;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .column-header .count {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .task-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: grab;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .task-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .task-card h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .task-card .meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge.priority-hoch { background: #fee; color: #c00; }
+        .badge.priority-mittel { background: #fff3cd; color: #856404; }
+        .badge.priority-niedrig { background: #d4edda; color: #155724; }
+        .badge.category-feature { background: #e7f3ff; color: #0066cc; }
+        .badge.category-fix { background: #fff8e1; color: #ff8f00; }
+        .badge.category-hotfix { background: #ffebee; color: #c62828; }
+        .task-card .project {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .task-card .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+        }
+        .task-card .actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        .btn-move { background: #667eea; color: white; }
+        .btn-move:hover { background: #5568d3; }
+        .btn-delete { background: #fee; color: #c00; }
+        .btn-delete:hover { background: #fdd; }
+        .btn-docs { background: #e7f3ff; color: #0066cc; }
+        .btn-docs:hover { background: #d0e7ff; }
+        .add-task-form {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .add-task-form input,
+        .add-task-form select,
+        .add-task-form textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .add-task-form button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .docs-form textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 8px;
+            min-height: 80px;
+        }
+        .docs-form button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .modal-content label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        .modal-content input,
+        .modal-content select,
+        .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .modal-content button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .modal-close {
+            float: right;
+            cursor: pointer;
+            font-size: 24px;
+            color: #999;
+        }
+        .modal-close:hover { color: #333; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🦀 Taskinator</h1>
+        <nav>
+            <a href="/board">Board</a>
+            <a href="/changelog">📋 Changelog</a>
+            <a href="/logout">Logout ({{ user }})</a>
+        </nav>
+    </div>
+    
+    <div class="board">
+        <!-- BACKLOG -->
+        <div class="column" id="backlog">
+            <div class="column-header">
+                📋 Backlog
+                <span class="count">{{ columns.backlog|length }}</span>
+            </div>
+            
+            <div class="add-task-form">
+                <form method="POST" action="/tasks/create">
+                    <input type="text" name="title" placeholder="Task Titel" maxlength="256" required>
+                    <textarea name="description" placeholder="Beschreibung" maxlength="1024" rows="2"></textarea>
+                    <select name="priority">
+                        <option value="niedrig">Niedrig</option>
+                        <option value="mittel" selected>Mittel</option>
+                        <option value="hoch">Hoch</option>
+                    </select>
+                    <select name="category">
+                        <option value="feature">Feature</option>
+                        <option value="fix">Fix</option>
+                        <option value="hotfix">Hotfix</option>
+                    </select>
+                    <input type="text" name="project" placeholder="Projekt (z.B. tradershome)">
+                    <button type="submit">➕ Add Task</button>
+                </form>
+            </div>
+            
+            {% for task in columns.backlog %}
+            <div class="task-card" data-id="{{ task.id }}">
+                <h3>{{ task.title }}</h3>
+                <div class="meta">
+                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
+                </div>
+                {% if task.project %}
+                <div class="project">📁 {{ task.project }}</div>
+                {% endif %}
+                <div class="actions">
+                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
+                        <input type="hidden" name="direction" value="forward">
+                        <button type="submit" class="btn-move">→</button>
+                    </form>
+                    <button class="btn-docs" onclick="openDocsModal({{ task.id }}, '{{ task.documentation or '' }}')">📝 Docs</button>
+                    <form method="POST" action="/tasks/{{ task.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete task?')">
+                        <button type="submit" class="btn-delete">🗑️</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- TODO -->
+        <div class="column" id="todo">
+            <div class="column-header">
+                ✅ To Do
+                <span class="count">{{ columns.todo|length }}</span>
+            </div>
+            
+            {% for task in columns.todo %}
+            <div class="task-card" data-id="{{ task.id }}">
+                <h3>{{ task.title }}</h3>
+                <div class="meta">
+                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
+                </div>
+                {% if task.project %}
+                <div class="project">📁 {{ task.project }}</div>
+                {% endif %}
+                <div class="actions">
+                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
+                        <input type="hidden" name="direction" value="backward">
+                        <button type="submit" class="btn-move">←</button>
+                    </form>
+                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
+                        <input type="hidden" name="direction" value="forward">
+                        <button type="submit" class="btn-move">→</button>
+                    </form>
+                    <button class="btn-docs" onclick="openDocsModal({{ task.id }}, '{{ task.documentation or '' }}')">📝 Docs</button>
+                    <form method="POST" action="/tasks/{{ task.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete task?')">
+                        <button type="submit" class="btn-delete">🗑️</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- DOING -->
+        <div class="column" id="doing">
+            <div class="column-header">
+                🚀 Doing
+                <span class="count">{{ columns.doing|length }}</span>
+            </div>
+            
+            {% for task in columns.doing %}
+            <div class="task-card" data-id="{{ task.id }}">
+                <h3>{{ task.title }}</h3>
+                <div class="meta">
+                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
+                </div>
+                {% if task.project %}
+                <div class="project">📁 {{ task.project }}</div>
+                {% endif %}
+                <div class="actions">
+                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
+                        <input type="hidden" name="direction" value="backward">
+                        <button type="submit" class="btn-move">←</button>
+                    </form>
+                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
+                        <input type="hidden" name="direction" value="forward">
+                        <button type="submit" class="btn-move">→</button>
+                    </form>
+                    <button class="btn-docs" onclick="openDocsModal({{ task.id }}, '{{ task.documentation or '' }}')">📝 Docs</button>
+                    <form method="POST" action="/tasks/{{ task.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete task?')">
+                        <button type="submit" class="btn-delete">🗑️</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- DONE -->
+        <div class="column" id="done">
+            <div class="column-header">
+                ✅ Done
+                <span class="count">{{ columns.done|length }}</span>
+            </div>
+            
+            {% for task in columns.done %}
+            <div class="task-card" data-id="{{ task.id }}">
+                <h3>{{ task.title }}</h3>
+                <div class="meta">
+                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
+                </div>
+                {% if task.project %}
+                <div class="project">📁 {{ task.project }}</div>
+                {% endif %}
+                {% if task.documentation %}
+                <div style="font-size:12px;color:#666;margin-top:8px;">📝 Docs vorhanden</div>
+                {% endif %}
+                <div class="actions">
+                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
+                        <input type="hidden" name="direction" value="backward">
+                        <button type="submit" class="btn-move">←</button>
+                    </form>
+                    <form method="POST" action="/tasks/{{ task.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete task?')">
+                        <button type="submit" class="btn-delete">🗑️</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Documentation Modal -->
+    <div class="modal" id="docsModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeDocsModal()">&times;</span>
+            <h2>📝 Dokumentation</h2>
+            <form class="docs-form" method="POST" action="/tasks/update" id="docsForm">
+                <input type="hidden" name="task_id" id="docsTaskId">
+                <label>Dokumentation / PR-Link / Test-Ergebnisse</label>
+                <textarea name="documentation" id="docsContent" rows="6" placeholder="Dokumentation, PR-Nummer, PR-Link, Test-Ergebnisse..."></textarea>
+                <button type="submit">💾 Speichern</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        function openDocsModal(taskId, content) {
+            document.getElementById('docsTaskId').value = taskId;
+            document.getElementById('docsContent').value = content || '';
+            document.getElementById('docsModal').classList.add('active');
+        }
+        
+        function closeDocsModal() {
+            document.getElementById('docsModal').classList.remove('active');
+        }
+        
+        // Close modal on outside click
+        document.getElementById('docsModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDocsModal();
+        });
+    </script>
+</body>
+</html>

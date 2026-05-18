@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taskinator - Changelog</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 24px; }
+        .header nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 20px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.2);
+            transition: background 0.3s;
+        }
+        .header nav a:hover { background: rgba(255,255,255,0.3); }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px;
+        }
+        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .search-bar form {
+            display: flex;
+            gap: 12px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .search-bar button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .changelog-entry {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+        .changelog-entry h2 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 20px;
+        }
+        .changelog-entry .meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: #666;
+        }
+        .changelog-entry .meta span {
+            background: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 12px;
+        }
+        .changelog-entry .description {
+            color: #555;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+        .changelog-entry .pr-link {
+            display: inline-block;
+            background: #e7f3ff;
+            color: #0066cc;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        .changelog-entry .pr-link:hover {
+            background: #d0e7ff;
+        }
+        .changelog-entry .test-results {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            color: #333;
+        }
+        .changelog-entry .date {
+            font-size: 13px;
+            color: #999;
+            margin-top: 16px;
+        }
+        .no-entries {
+            text-align: center;
+            color: #999;
+            padding: 60px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🦀 Taskinator - Changelog</h1>
+        <nav>
+            <a href="/board">Board</a>
+            <a href="/changelog">📋 Changelog</a>
+            <a href="/logout">Logout ({{ user }})</a>
+        </nav>
+    </div>
+    
+    <div class="container">
+        <div class="search-bar">
+            <form method="GET" action="/changelog">
+                <input type="text" name="search" placeholder="Suche nach Titel oder ID..." value="{{ search or '' }}">
+                <button type="submit">🔍 Suchen</button>
+            </form>
+        </div>
+        
+        {% if changes %}
+            {% for change in changes %}
+            <div class="changelog-entry">
+                <h2>#{{ change.id }}: {{ change.title }}</h2>
+                <div class="meta">
+                    <span>📋 Task #{{ change.task_id }}</span>
+                    {% if change.pr_number %}
+                    <span>PR #{{ change.pr_number }}</span>
+                    {% endif %}
+                    <span>📅 {{ change.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</span>
+                </div>
+                
+                {% if change.description %}
+                <div class="description">{{ change.description }}</div>
+                {% endif %}
+                
+                {% if change.pr_link %}
+                <a href="{{ change.pr_link }}" target="_blank" class="pr-link">🔗 PR auf GitHub</a>
+                {% endif %}
+                
+                {% if change.test_results %}
+                <div class="test-results">{{ change.test_results }}</div>
+                {% endif %}
+                
+                <div class="date">Erstellt: {{ change.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-entries">
+                {% if search %}
+                    Keine Ergebnisse für "{{ search }}"
+                {% else %}
+                    Noch keine Änderungen dokumentiert 🎉
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  taskinator:
+    build: .
+    container_name: taskinator
+    ports:
+      - "9900:9900"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - SECRET_KEY=taskinator-production-secret-key-change-me
+      - DATABASE_URL=sqlite+aiosqlite:////app/data/taskinator.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9900/login')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
