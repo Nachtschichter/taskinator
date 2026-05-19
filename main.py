@@ -199,7 +199,7 @@ def update_task_details(request: Request, task_id: int = Form(...), title: str =
     db.close()
     return RedirectResponse("/board", status_code=302)
 
-@app.get("/changelog", response_class=HTMLResponse)
+@app.get("/changelog")
 def changelog(request: Request, search: str = ""):
     if not get_user(request): return RedirectResponse("/login")
     db = SessionLocal()
@@ -207,7 +207,8 @@ def changelog(request: Request, search: str = ""):
     if search: q = q.filter((ChangeLog.title.ilike(f"%{search}%")) | (ChangeLog.id.cast(String).ilike(f"%{search}%")))
     changes = q.all()
     db.close()
-    return templates.TemplateResponse("changelog.html", {"request": request, "changes": changes, "search": search, "user": get_user(request)})
+    html_content = templates.get_template("changelog.html").render({"request": request, "changes": changes, "search": search, "user": get_user(request)})
+    return Response(content=html_content, media_type="text/html; charset=utf-8")
 
 @app.post("/changelog/create")
 def create_changelog(request: Request, task_id: int = Form(...), title: str = Form(...), 
