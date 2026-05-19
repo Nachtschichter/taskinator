@@ -8,9 +8,6 @@ services:
       - "9900:9900"
     volumes:
       - taskinator-db:/app/data
-
-volumes:
-  taskinator-db:
     environment:
       - SECRET_KEY=taskinator-production-secret-key-change-me
       - DATABASE_URL=sqlite:////app/data/taskinator.db
@@ -20,3 +17,6 @@ volumes:
       interval: 30s
       timeout: 10s
       retries: 3
+
+volumes:
+  taskinator-db:
