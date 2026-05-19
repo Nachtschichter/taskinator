@@ -284,8 +284,14 @@
                         <input type="hidden" name="direction" value="forward">
                         <button type="submit" class="btn-move">→</button>
                     </form>
-                    <button class="btn-docs" onclick="openEditModal({{ task.id }}, '{{ task.title }}', '{{ task.description or '' }}', '{{ task.priority }}', '{{ task.category }}', '{{ task.project or '' }}')">✏️ Edit</button>
-                    <button class="btn-docs" onclick="openDocsModal({{ task.id }}, '{{ task.documentation or '' }}')">📝 Docs</button>
+                    <button class="btn-docs edit-btn" 
+                        data-id="{{ task.id }}" 
+                        data-title="{{ task.title | e }}" 
+                        data-description="{{ task.description | e }}" 
+                        data-priority="{{ task.priority }}" 
+                        data-category="{{ task.category }}" 
+                        data-project="{{ task.project or '' }}">✏️ Edit</button>
+                    <button class="btn-docs" onclick="openDocsModal({{ task.id }}, '{{ task.documentation | e }}')">📝 Docs</button>
                     <form method="POST" action="/tasks/{{ task.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete task?')">
                         <button type="submit" class="btn-delete">🗑️</button>
                     </form>
@@ -479,6 +485,20 @@
         function closeEditModal() {
             document.getElementById('editModal').classList.remove('active');
         }
+        
+        // Edit button click handler (uses data attributes to avoid quote escaping issues)
+        document.querySelectorAll('.edit-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                openEditModal(
+                    this.getAttribute('data-id'),
+                    this.getAttribute('data-title'),
+                    this.getAttribute('data-description'),
+                    this.getAttribute('data-priority'),
+                    this.getAttribute('data-category'),
+                    this.getAttribute('data-project')
+                );
+            });
+        });
         
         // Close modals on outside click
         document.getElementById('docsModal').addEventListener('click', function(e) {
