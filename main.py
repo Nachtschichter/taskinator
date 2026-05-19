@@ -1,5 +1,6 @@
 """Taskinator - Simple Kanban Board"""
 import os
+import json
 from fastapi import FastAPI, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -297,6 +298,30 @@ def task_update_docs(request: Request, tid: int, documentation: str = Form("")):
     db.commit()
     db.close()
     return RedirectResponse(f"/tasks/{tid}", status_code=302)
+
+
+# Task Sync API - Für Agent Visibility
+@app.get("/api/tasks")
+def api_list_tasks(request: Request):
+    """Returns all tasks as JSON for agent synchronization"""
+    if not get_user(request): return Response(content='{"error":"Unauthorized"}', status_code=401, media_type="application/json")
+    db = SessionLocal()
+    tasks = db.query(Task).order_by(Task.id).all()
+    result = []
+    for t in tasks:
+        result.append({
+            "id": t.id,
+            "title": t.title,
+            "description": t.description or "",
+            "status": t.status.value,
+            "priority": t.priority.value,
+            "category": t.category.value,
+            "project": t.project or "",
+            "documentation": t.documentation or "",
+            "created_at": t.created_at.isoformat() if t.created_at else None
+        })
+    db.close()
+    return Response(content=json.dumps(result, ensure_ascii=False), status_code=200, media_type="application/json; charset=utf-8")
 
 if __name__ == "__main__":
     import uvicorn
