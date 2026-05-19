@@ -61,7 +61,7 @@ class ChangeLog(Base):
     test_results = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False}, encoding="utf-8")
 SessionLocal = sessionmaker(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
