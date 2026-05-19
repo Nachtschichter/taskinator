@@ -9,6 +9,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application
 COPY . .
 
+# Create data directory
+RUN mkdir -p /app/data && chmod 777 /app/data
+
 # Expose port
 EXPOSE 9900
 
