@@ -275,6 +275,29 @@ def admin_delete_project(request: Request, pid: int):
     db.close()
     return RedirectResponse("/admin/projects", status_code=302)
 
+# Task Documentation Page
+@app.get("/tasks/{tid}")
+def task_detail(request: Request, tid: int):
+    if not get_user(request): return RedirectResponse("/login")
+    db = SessionLocal()
+    task = db.query(Task).filter(Task.id == tid).first()
+    if not task:
+        db.close()
+        return Response(content="Task not found", status_code=404, media_type="text/plain")
+    changelog_entries = db.query(ChangeLog).filter(ChangeLog.task_id == tid).order_by(ChangeLog.created_at.desc()).all()
+    db.close()
+    html_content = templates.get_template("task_detail.html").render({"request": request, "task": task, "changelog": changelog_entries, "user": get_user(request)})
+    return Response(content=html_content, media_type="text/html; charset=utf-8")
+
+@app.post("/tasks/{tid}/update-docs")
+def task_update_docs(request: Request, tid: int, documentation: str = Form("")):
+    if not get_user(request): return RedirectResponse("/login")
+    db = SessionLocal()
+    db.query(Task).filter(Task.id == tid).update({"documentation": documentation})
+    db.commit()
+    db.close()
+    return RedirectResponse(f"/tasks/{tid}", status_code=302)
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=9900)
