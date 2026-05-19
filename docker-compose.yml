@@ -10,7 +10,7 @@ services:
       - /home/storagebox/databases/taskinator:/app/data
     environment:
       - SECRET_KEY=taskinator-production-secret-key-change-me
-      - DATABASE_URL=sqlite+aiosqlite:////app/data/taskinator.db
+      - DATABASE_URL=sqlite:////app/data/taskinator.db
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9900/login')"]
