@@ -1,7 +1,7 @@
 """Taskinator - Simple Kanban Board"""
 import os
 from fastapi import FastAPI, Request, Depends, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, DateTime, Enum
@@ -132,9 +132,8 @@ def board(request: Request):
             'category': t.category.value, 'project': t.project, 'documentation': t.documentation})
     prio = {"hoch": 0, "mittel": 1, "niedrig": 2}
     for c in cols.values(): c.sort(key=lambda x: prio.get(x['priority'], 1))
-    response = templates.TemplateResponse("board.html", {"request": request, "columns": cols, "user": user})
-    response.headers["Content-Type"] = "text/html; charset=utf-8"
-    return response
+    html = templates.TemplateResponse("board.html", {"request": request, "columns": cols, "user": user})
+    return Response(content=html.body(), media_type="text/html; charset=utf-8")
 
 @app.post("/tasks/create")
 def create_task(request: Request, title: str = Form(...), description: str = Form(""), 
