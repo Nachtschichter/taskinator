@@ -301,3 +301,26 @@ def task_update_docs(request: Request, tid: int, documentation: str = Form("")):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=9900)
+
+# Task Sync API - Für Agent Visibility
+@app.get("/api/tasks")
+def api_list_tasks(request: Request):
+    """Returns all tasks as JSON for agent synchronization"""
+    if not get_user(request): return Response(content='{"error":"Unauthorized"}', status_code=401, media_type="application/json")
+    db = SessionLocal()
+    tasks = db.query(Task).order_by(Task.id).all()
+    result = []
+    for t in tasks:
+        result.append({
+            "id": t.id,
+            "title": t.title,
+            "description": t.description or "",
+            "status": t.status.value,
+            "priority": t.priority.value,
+            "category": t.category.value,
+            "project": t.project or "",
+            "documentation": t.documentation or "",
+            "created_at": t.created_at.isoformat() if t.created_at else None
+        })
+    db.close()
+    return Response(content=json.dumps(result, ensure_ascii=False), status_code=200, media_type="application/json; charset=utf-8")
