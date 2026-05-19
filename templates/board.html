@@ -378,7 +378,9 @@
                 <div class="project">📁 {{ task.project }}</div>
                 {% endif %}
                 {% if task.documentation %}
-                <div style="font-size:12px;color:#666;margin-top:8px;">📝 Docs vorhanden</div>
+                <div style="font-size:12px;color:#666;margin-top:8px;">
+                    📝 <a href="/changelog?search={{ task.id }}" target="_blank" style="color:#0066cc;text-decoration:none;">Changelog ansehen</a>
+                </div>
                 {% endif %}
                 <div class="actions">
                     <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
