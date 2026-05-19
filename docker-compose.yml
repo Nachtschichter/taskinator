@@ -7,15 +7,7 @@ services:
     ports:
       - "9900:9900"
     volumes:
-      - taskinator-data:/app/data
-
-volumes:
-  taskinator-data:
-    driver: local
-    driver_opts:
-      type: none
-      device: /home/storagebox/databases/taskinator
-      o: bind
+      - /home/storagebox/databases/taskinator:/app/data
     environment:
       - SECRET_KEY=taskinator-production-secret-key-change-me
       - DATABASE_URL=sqlite:////app/data/taskinator.db
