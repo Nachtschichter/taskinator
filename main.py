@@ -178,6 +178,24 @@ def update_task(request: Request, tid: int, documentation: str = Form("")):
     db.close()
     return RedirectResponse("/board", status_code=302)
 
+@app.post("/tasks/update-details")
+def update_task_details(request: Request, task_id: int = Form(...), title: str = Form(...), 
+                        description: str = Form(""), priority: str = Form("mittel"), 
+                        category: str = Form("feature"), project: str = Form("")):
+    if not get_user(request): return RedirectResponse("/login")
+    if category == "hotfix": priority = "hoch"
+    db = SessionLocal()
+    db.query(Task).filter(Task.id == task_id).update({
+        "title": title,
+        "description": description,
+        "priority": Priority(priority),
+        "category": Category(category),
+        "project": project
+    })
+    db.commit()
+    db.close()
+    return RedirectResponse("/board", status_code=302)
+
 @app.get("/changelog", response_class=HTMLResponse)
 def changelog(request: Request, search: str = ""):
     if not get_user(request): return RedirectResponse("/login")
