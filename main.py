@@ -128,7 +128,7 @@ def board(request: Request):
     db.close()
     cols = {"backlog": [], "todo": [], "doing": [], "done": []}
     for t in tasks:
-        cols[t.status.value].append({'id': t.id, 'title': t.title, 'priority': t.priority.value, 
+        cols[t.status.value].append({'id': t.id, 'title': t.title, 'description': t.description or '', 'priority': t.priority.value, 
             'category': t.category.value, 'project': t.project, 'documentation': t.documentation})
     prio = {"hoch": 0, "mittel": 1, "niedrig": 2}
     for c in cols.values(): c.sort(key=lambda x: prio.get(x['priority'], 1))
