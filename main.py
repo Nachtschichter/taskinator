@@ -87,7 +87,9 @@ templates = Jinja2Templates(directory="templates")
 @app.middleware("http")
 async def add_charset_header(request: Request, call_next):
     response = await call_next(request)
-    if response.headers.get("content-type", "").startswith("text/html"):
+    # Aggressiv: Immer UTF-8 für HTML-Responses setzen
+    content_type = response.headers.get("content-type", "")
+    if not content_type or content_type.startswith("text/html"):
         response.headers["content-type"] = "text/html; charset=utf-8"
     return response
 
