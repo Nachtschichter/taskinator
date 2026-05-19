@@ -106,9 +106,10 @@ def root(request: Request):
     if not get_user(request): return RedirectResponse("/login")
     return RedirectResponse("/board")
 
-@app.get("/login", response_class=HTMLResponse)
+@app.get("/login")
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    html_content = templates.get_template("login.html").render({"request": request})
+    return Response(content=html_content, media_type="text/html; charset=utf-8")
 
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...)):
@@ -116,7 +117,8 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     user = db.query(User).filter(User.username == username).first()
     db.close()
     if not user or not verify_password(password, user.password_hash):
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid"})
+        html_content = templates.get_template("login.html").render({"request": request, "error": "Invalid"})
+        return Response(content=html_content, media_type="text/html; charset=utf-8")
     resp = RedirectResponse("/board", status_code=302)
     resp.set_cookie("access_token", create_token({"sub": username}), httponly=True)
     return resp
