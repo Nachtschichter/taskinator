@@ -119,7 +119,7 @@ def logout():
     resp.delete_cookie("access_token")
     return resp
 
-@app.get("/board", response_class=HTMLResponse)
+@app.get("/board")
 def board(request: Request):
     user = get_user(request)
     if not user: return RedirectResponse("/login")
@@ -132,8 +132,10 @@ def board(request: Request):
             'category': t.category.value, 'project': t.project, 'documentation': t.documentation})
     prio = {"hoch": 0, "mittel": 1, "niedrig": 2}
     for c in cols.values(): c.sort(key=lambda x: prio.get(x['priority'], 1))
-    html = templates.TemplateResponse("board.html", {"request": request, "columns": cols, "user": user})
-    return Response(content=html.body(), media_type="text/html; charset=utf-8")
+    # Template direkt rendern statt TemplateResponse
+    from starlette.templating import _TemplateResponse
+    html_content = templates.get_template("board.html").render({"request": request, "columns": cols, "user": user})
+    return Response(content=html_content, media_type="text/html; charset=utf-8")
 
 @app.post("/tasks/create")
 def create_task(request: Request, title: str = Form(...), description: str = Form(""), 
