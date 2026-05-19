@@ -83,6 +83,14 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+# Middleware für UTF-8 Content-Type
+@app.middleware("http")
+async def add_charset_header(request: Request, call_next):
+    response = await call_next(request)
+    if response.headers.get("content-type", "").startswith("text/html"):
+        response.headers["content-type"] = "text/html; charset=utf-8"
+    return response
+
 @app.on_event("startup")
 def startup():
     Base.metadata.create_all(bind=engine)
@@ -132,8 +140,6 @@ def board(request: Request):
             'category': t.category.value, 'project': t.project, 'documentation': t.documentation})
     prio = {"hoch": 0, "mittel": 1, "niedrig": 2}
     for c in cols.values(): c.sort(key=lambda x: prio.get(x['priority'], 1))
-    # Template direkt rendern statt TemplateResponse
-    from starlette.templating import _TemplateResponse
     html_content = templates.get_template("board.html").render({"request": request, "columns": cols, "user": user})
     return Response(content=html_content, media_type="text/html; charset=utf-8")
 
