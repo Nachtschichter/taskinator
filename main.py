@@ -1,7 +1,7 @@
 """Taskinator - Simple Kanban Board"""
 import os
 from fastapi import FastAPI, Request, Depends, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, DateTime, Enum
@@ -83,6 +83,16 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+# Middleware für UTF-8 Content-Type
+@app.middleware("http")
+async def add_charset_header(request: Request, call_next):
+    response = await call_next(request)
+    # Aggressiv: Immer UTF-8 für HTML-Responses setzen
+    content_type = response.headers.get("content-type", "")
+    if not content_type or content_type.startswith("text/html"):
+        response.headers["content-type"] = "text/html; charset=utf-8"
+    return response
+
 @app.on_event("startup")
 def startup():
     Base.metadata.create_all(bind=engine)
@@ -98,9 +108,10 @@ def root(request: Request):
     if not get_user(request): return RedirectResponse("/login")
     return RedirectResponse("/board")
 
-@app.get("/login", response_class=HTMLResponse)
+@app.get("/login")
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    html_content = templates.get_template("login.html").render({"request": request})
+    return Response(content=html_content, media_type="text/html; charset=utf-8")
 
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...)):
@@ -108,7 +119,8 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     user = db.query(User).filter(User.username == username).first()
     db.close()
     if not user or not verify_password(password, user.password_hash):
-        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid"})
+        html_content = templates.get_template("login.html").render({"request": request, "error": "Invalid"})
+        return Response(content=html_content, media_type="text/html; charset=utf-8")
     resp = RedirectResponse("/board", status_code=302)
     resp.set_cookie("access_token", create_token({"sub": username}), httponly=True)
     return resp
@@ -119,7 +131,7 @@ def logout():
     resp.delete_cookie("access_token")
     return resp
 
-@app.get("/board", response_class=HTMLResponse)
+@app.get("/board")
 def board(request: Request):
     user = get_user(request)
     if not user: return RedirectResponse("/login")
@@ -132,7 +144,8 @@ def board(request: Request):
             'category': t.category.value, 'project': t.project, 'documentation': t.documentation})
     prio = {"hoch": 0, "mittel": 1, "niedrig": 2}
     for c in cols.values(): c.sort(key=lambda x: prio.get(x['priority'], 1))
-    return templates.TemplateResponse("board.html", {"request": request, "columns": cols, "user": user})
+    html_content = templates.get_template("board.html").render({"request": request, "columns": cols, "user": user})
+    return Response(content=html_content, media_type="text/html; charset=utf-8")
 
 @app.post("/tasks/create")
 def create_task(request: Request, title: str = Form(...), description: str = Form(""), 
@@ -196,7 +209,7 @@ def update_task_details(request: Request, task_id: int = Form(...), title: str =
     db.close()
     return RedirectResponse("/board", status_code=302)
 
-@app.get("/changelog", response_class=HTMLResponse)
+@app.get("/changelog")
 def changelog(request: Request, search: str = ""):
     if not get_user(request): return RedirectResponse("/login")
     db = SessionLocal()
@@ -204,7 +217,8 @@ def changelog(request: Request, search: str = ""):
     if search: q = q.filter((ChangeLog.title.ilike(f"%{search}%")) | (ChangeLog.id.cast(String).ilike(f"%{search}%")))
     changes = q.all()
     db.close()
-    return templates.TemplateResponse("changelog.html", {"request": request, "changes": changes, "search": search, "user": get_user(request)})
+    html_content = templates.get_template("changelog.html").render({"request": request, "changes": changes, "search": search, "user": get_user(request)})
+    return Response(content=html_content, media_type="text/html; charset=utf-8")
 
 @app.post("/changelog/create")
 def create_changelog(request: Request, task_id: int = Form(...), title: str = Form(...), 
