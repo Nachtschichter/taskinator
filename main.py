@@ -88,7 +88,7 @@ def startup():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     if not db.query(User).filter(User.username == "admin").first():
-        db.add(User(username="admin", password_hash=hash_password("Y5zQ7hrQ75ERuLjDYHfX")))
+        db.add(User(username="admin", password_hash=hash_password("Taskinator2026!")))
         db.commit()
         print("✅ Admin created")
     db.close()
