@@ -1,5 +1,6 @@
 """Taskinator - Simple Kanban Board"""
 import os
+import json
 from fastapi import FastAPI, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -298,9 +299,6 @@ def task_update_docs(request: Request, tid: int, documentation: str = Form("")):
     db.close()
     return RedirectResponse(f"/tasks/{tid}", status_code=302)
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=9900)
 
 # Task Sync API - Für Agent Visibility
 @app.get("/api/tasks")
@@ -324,3 +322,7 @@ def api_list_tasks(request: Request):
         })
     db.close()
     return Response(content=json.dumps(result, ensure_ascii=False), status_code=200, media_type="application/json; charset=utf-8")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=9900)
