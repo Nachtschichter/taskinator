@@ -61,6 +61,12 @@ class ChangeLog(Base):
     test_results = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class Project(Base):
+    __tablename__ = "projects"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -101,6 +107,13 @@ def startup():
         db.add(User(username="admin", password_hash=hash_password("Taskinator2026!")))
         db.commit()
         print("✅ Admin created")
+    # Default projects if none exist
+    if db.query(Project).count() == 0:
+        default_projects = ["tradershome", "OpenTradingClaw", "taskinator", "infrastructure"]
+        for pname in default_projects:
+            db.add(Project(name=pname))
+        db.commit()
+        print(f"✅ Default projects created: {default_projects}")
     db.close()
 
 @app.get("/", response_class=HTMLResponse)
@@ -137,6 +150,7 @@ def board(request: Request):
     if not user: return RedirectResponse("/login")
     db = SessionLocal()
     tasks = db.query(Task).order_by(Task.created_at.desc()).all()
+    projects = db.query(Project).order_by(Project.name).all()
     db.close()
     cols = {"backlog": [], "todo": [], "doing": [], "done": []}
     for t in tasks:
@@ -144,7 +158,7 @@ def board(request: Request):
             'category': t.category.value, 'project': t.project, 'documentation': t.documentation})
     prio = {"hoch": 0, "mittel": 1, "niedrig": 2}
     for c in cols.values(): c.sort(key=lambda x: prio.get(x['priority'], 1))
-    html_content = templates.get_template("board.html").render({"request": request, "columns": cols, "user": user})
+    html_content = templates.get_template("board.html").render({"request": request, "columns": cols, "user": user, "projects": projects})
     return Response(content=html_content, media_type="text/html; charset=utf-8")
 
 @app.post("/tasks/create")
@@ -229,6 +243,37 @@ def create_changelog(request: Request, task_id: int = Form(...), title: str = Fo
     db.commit()
     db.close()
     return RedirectResponse("/changelog", status_code=302)
+
+# Admin Routes - Project Management
+@app.get("/admin/projects")
+def admin_projects(request: Request):
+    if not get_user(request): return RedirectResponse("/login")
+    db = SessionLocal()
+    projects = db.query(Project).order_by(Project.name).all()
+    db.close()
+    html_content = templates.get_template("admin_projects.html").render({"request": request, "projects": projects, "user": get_user(request)})
+    return Response(content=html_content, media_type="text/html; charset=utf-8")
+
+@app.post("/admin/projects/create")
+def admin_create_project(request: Request, name: str = Form(...)):
+    if not get_user(request): return RedirectResponse("/login")
+    db = SessionLocal()
+    # Check if project already exists
+    existing = db.query(Project).filter(Project.name == name).first()
+    if not existing and name.strip():
+        db.add(Project(name=name.strip()))
+        db.commit()
+    db.close()
+    return RedirectResponse("/admin/projects", status_code=302)
+
+@app.post("/admin/projects/{pid}/delete")
+def admin_delete_project(request: Request, pid: int):
+    if not get_user(request): return RedirectResponse("/login")
+    db = SessionLocal()
+    db.query(Project).filter(Project.id == pid).delete()
+    db.commit()
+    db.close()
+    return RedirectResponse("/admin/projects", status_code=302)
 
 if __name__ == "__main__":
     import uvicorn
