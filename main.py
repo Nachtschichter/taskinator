@@ -132,7 +132,9 @@ def board(request: Request):
             'category': t.category.value, 'project': t.project, 'documentation': t.documentation})
     prio = {"hoch": 0, "mittel": 1, "niedrig": 2}
     for c in cols.values(): c.sort(key=lambda x: prio.get(x['priority'], 1))
-    return templates.TemplateResponse("board.html", {"request": request, "columns": cols, "user": user}, media_type="text/html; charset=utf-8")
+    response = templates.TemplateResponse("board.html", {"request": request, "columns": cols, "user": user})
+    response.headers["Content-Type"] = "text/html; charset=utf-8"
+    return response
 
 @app.post("/tasks/create")
 def create_task(request: Request, title: str = Form(...), description: str = Form(""), 
