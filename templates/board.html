@@ -296,7 +296,7 @@
                         data-priority="{{ task.priority }}" 
                         data-category="{{ task.category }}" 
                         data-project="{{ task.project or '' }}">✏️ Edit</button>
-                    <button class="btn-docs" onclick="openDocsModal({{ task.id }}, '{{ task.documentation | e }}')">📝 Docs</button>
+                    <a href="/tasks/{{ task.id }}" class="btn-docs" style="text-decoration:none;display:inline-block;padding:8px 12px;background:#667eea;color:white;border-radius:6px;font-size:12px;font-weight:600;transition:all 0.3s;">📄 Details</a>
                     <form method="POST" action="/tasks/{{ task.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete task?')">
                         <button type="submit" class="btn-delete">🗑️</button>
                     </form>
