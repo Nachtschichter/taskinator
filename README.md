@@ -42,6 +42,38 @@ http://localhost:9900
 - **Username:** admin
 - **Password:** Y5zQ7hrQ75ERuLjDYHfX
 
+## Documentation
+
+### PR Links in Tasks
+
+When completing a task, add the PR link to the task documentation:
+
+1. Move task to **Done**
+2. Click the task to open details
+3. Add PR link in the documentation field
+4. Format: `https://github.com/<user>/<repo>/pull/<number>`
+5. The PR link becomes part of the task's permanent documentation
+6. This link will appear in the changelog for traceability
+
+**Example:**
+```
+PR: https://github.com/micbit/taskinator/pull/42
+Tested: ✅ Passed on staging
+```
+
+## Public Access
+
+The application is publicly accessible at:
+
+- **Production:** http://91.99.5.26:9900
+- **Database Location:** `/root/storagebox/databases/taskinator`
+
+### Security Notes
+
+- Change the default credentials immediately
+- Use HTTPS in production (reverse proxy recommended)
+- Keep `SECRET_KEY` secure and unique
+
 ## Workflow
 
 1. Create task in **Backlog**

@@ -1,38 +1,19 @@
-"""
-Taskinator - Simple Kanban Board for Task Management
-"""
+"""Taskinator - Simple Kanban Board"""
 import os
-from fastapi import FastAPI, Request, Depends, HTTPException, status, Form
+from fastapi import FastAPI, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, DateTime, Enum, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session, relationship
-from datetime import datetime
-from typing import Optional, List
+from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, DateTime, Enum
+from sqlalchemy.orm import declarative_base, sessionmaker
+from datetime import datetime, timedelta
 import enum
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-import aiosqlite
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.ext.asyncio import async_sessionmaker
-import asyncio
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Configuration
-# ─────────────────────────────────────────────────────────────────────────────
-
-SECRET_KEY = os.getenv("SECRET_KEY", "taskinator-secret-key-change-in-production")
+SECRET_KEY = os.getenv("SECRET_KEY", "taskinator-secret")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
-
-DATABASE_URL = "sqlite+aiosqlite:///./taskinator.db"
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Database Setup
-# ─────────────────────────────────────────────────────────────────────────────
-
+DATABASE_URL = "sqlite:///./taskinator_app.db"
 Base = declarative_base()
 
 class Priority(enum.Enum):
@@ -53,316 +34,169 @@ class TaskStatus(enum.Enum):
 
 class Task(Base):
     __tablename__ = "tasks"
-    
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     title = Column(String(256), nullable=False)
-    description = Column(String(1024), nullable=True)
+    description = Column(String(1024))
     priority = Column(Enum(Priority), default=Priority.MEDIUM)
     category = Column(Enum(Category), default=Category.FEATURE)
-    project = Column(String(100), nullable=True)
-    documentation = Column(Text, nullable=True)
+    project = Column(String(100))
+    documentation = Column(Text)
     status = Column(Enum(TaskStatus), default=TaskStatus.BACKLOG)
     created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 class User(Base):
     __tablename__ = "users"
-    
     id = Column(Integer, primary_key=True)
-    username = Column(String(100), unique=True, nullable=False)
-    password_hash = Column(String(256), nullable=False)
+    username = Column(String(100), unique=True)
+    password_hash = Column(String(256))
 
 class ChangeLog(Base):
     __tablename__ = "changelog"
-    
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)
     task_id = Column(Integer, ForeignKey("tasks.id"))
-    title = Column(String(256), nullable=False)
-    description = Column(String(1024), nullable=True)
-    pr_number = Column(Integer, nullable=True)
-    pr_link = Column(String(512), nullable=True)
-    test_results = Column(Text, nullable=True)
+    title = Column(String(256))
+    description = Column(String(1024))
+    pr_number = Column(Integer)
+    pr_link = Column(String(512))
+    test_results = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-engine = create_async_engine(DATABASE_URL, echo=False)
-async_session = async_sessionmaker(engine, class_=AsyncSession)
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Authentication
-# ─────────────────────────────────────────────────────────────────────────────
-
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+def verify_password(plain, hashed): return pwd_context.verify(plain, hashed)
+def hash_password(pw): return pwd_context.hash(pw)
+def create_token(data):
+    exp = datetime.utcnow() + timedelta(minutes=1440)
+    return jwt.encode({**data, "exp": exp}, SECRET_KEY, algorithm=ALGORITHM)
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-def create_access_token(data: dict):
-    to_encode = data.copy()
-    from datetime import timedelta
-    from datetime import datetime as dt
-    expire = dt.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-async def get_current_user(request: Request):
+def get_user(request):
     token = request.cookies.get("access_token")
-    if not token:
-        return None
+    if not token: return None
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username = payload.get("sub")
-        return username
-    except JWTError:
-        return None
+        return payload.get("sub")
+    except: return None
 
-# ─────────────────────────────────────────────────────────────────────────────
-# FastAPI App
-# ─────────────────────────────────────────────────────────────────────────────
-
-app = FastAPI(title="Taskinator", description="Simple Kanban Board")
-
+app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Routes
-# ─────────────────────────────────────────────────────────────────────────────
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    if not db.query(User).filter(User.username == "admin").first():
+        db.add(User(username="admin", password_hash=hash_password("Y5zQ7hrQ75ERuLjDYHfX")))
+        db.commit()
+        print("✅ Admin created")
+    db.close()
 
 @app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
-    user = await get_current_user(request)
-    if not user:
-        return RedirectResponse(url="/login")
-    return RedirectResponse(url="/board")
+def root(request: Request):
+    if not get_user(request): return RedirectResponse("/login")
+    return RedirectResponse("/board")
 
 @app.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
+def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/login")
-async def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    async with async_session() as db:
-        user = await db.execute(User.__table__.select().where(User.username == username))
-        user = user.fetchone()
-        
-        if not user or not verify_password(password, user.password_hash):
-            return templates.TemplateResponse("login.html", {
-                "request": request,
-                "error": "Invalid credentials"
-            })
-    
-    access_token = create_access_token(data={"sub": username})
-    response = RedirectResponse(url="/board", status_code=302)
-    response.set_cookie(key="access_token", value=access_token, httponly=True)
-    return response
+def login(request: Request, username: str = Form(...), password: str = Form(...)):
+    db = SessionLocal()
+    user = db.query(User).filter(User.username == username).first()
+    db.close()
+    if not user or not verify_password(password, user.password_hash):
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Invalid"})
+    resp = RedirectResponse("/board", status_code=302)
+    resp.set_cookie("access_token", create_token({"sub": username}), httponly=True)
+    return resp
 
 @app.get("/logout")
-async def logout():
-    response = RedirectResponse(url="/login", status_code=302)
-    response.delete_cookie("access_token")
-    return response
+def logout():
+    resp = RedirectResponse("/login", status_code=302)
+    resp.delete_cookie("access_token")
+    return resp
 
 @app.get("/board", response_class=HTMLResponse)
-async def board(request: Request):
-    user = await get_current_user(request)
-    if not user:
-        return RedirectResponse(url="/login")
-    
-    async with async_session() as db:
-        result = await db.execute(Task.__table__.select().order_by(Task.created_at.desc()))
-        tasks = result.fetchall()
-    
-    columns = {
-        "backlog": [],
-        "todo": [],
-        "doing": [],
-        "done": []
-    }
-    
-    for task in tasks:
-        columns[task.status].append(dict(task))
-    
-    # Sort by priority
-    priority_order = {Priority.HIGH: 0, Priority.MEDIUM: 1, Priority.LOW: 2}
-    for col in columns.values():
-        col.sort(key=lambda x: priority_order.get(x['priority'], 1))
-    
-    return templates.TemplateResponse("board.html", {
-        "request": request,
-        "columns": columns,
-        "user": user,
-        "Priority": Priority,
-        "Category": Category
-    })
+def board(request: Request):
+    user = get_user(request)
+    if not user: return RedirectResponse("/login")
+    db = SessionLocal()
+    tasks = db.query(Task).order_by(Task.created_at.desc()).all()
+    db.close()
+    cols = {"backlog": [], "todo": [], "doing": [], "done": []}
+    for t in tasks:
+        cols[t.status.value].append({'id': t.id, 'title': t.title, 'priority': t.priority.value, 
+            'category': t.category.value, 'project': t.project, 'documentation': t.documentation})
+    prio = {"hoch": 0, "mittel": 1, "niedrig": 2}
+    for c in cols.values(): c.sort(key=lambda x: prio.get(x['priority'], 1))
+    return templates.TemplateResponse("board.html", {"request": request, "columns": cols, "user": user})
 
 @app.post("/tasks/create")
-async def create_task(
-    request: Request,
-    title: str = Form(...),
-    description: str = Form(None),
-    priority: str = Form("mittel"),
-    category: str = Form("feature"),
-    project: str = Form(None)
-):
-    user = await get_current_user(request)
-    if not user:
-        return RedirectResponse(url="/login")
-    
-    # Hotfix automatically gets high priority
-    if category == "hotfix":
-        priority = "hoch"
-    
-    priority_enum = Priority(priority)
-    category_enum = Category(category)
-    
-    async with async_session() as db:
-        await db.execute(Task.__table__.insert().values(
-            title=title,
-            description=description,
-            priority=priority_enum,
-            category=category_enum,
-            project=project,
-            status=TaskStatus.BACKLOG
-        ))
-        await db.commit()
-    
-    return RedirectResponse(url="/board", status_code=302)
+def create_task(request: Request, title: str = Form(...), description: str = Form(""), 
+                priority: str = Form("mittel"), category: str = Form("feature"), project: str = Form("")):
+    if not get_user(request): return RedirectResponse("/login")
+    if category == "hotfix": priority = "hoch"
+    db = SessionLocal()
+    db.add(Task(title=title, description=description, priority=Priority(priority), 
+                category=Category(category), project=project))
+    db.commit()
+    db.close()
+    return RedirectResponse("/board", status_code=302)
 
-@app.post("/tasks/{task_id}/move")
-async def move_task(request: Request, task_id: int, direction: str = Form(...)):
-    user = await get_current_user(request)
-    if not user:
-        return RedirectResponse(url="/login")
-    
-    status_order = ["backlog", "todo", "doing", "done"]
-    
-    async with async_session() as db:
-        result = await db.execute(Task.__table__.select().where(Task.id == task_id))
-        task = result.fetchone()
-        
-        if not task:
-            raise HTTPException(status_code=404, detail="Task not found")
-        
-        current_idx = status_order.index(task.status)
-        
-        if direction == "forward" and current_idx < len(status_order) - 1:
-            new_status = status_order[current_idx + 1]
-        elif direction == "backward" and current_idx > 0:
-            new_status = status_order[current_idx - 1]
-        else:
-            return RedirectResponse(url="/board", status_code=302)
-        
-        await db.execute(Task.__table__.update()
-            .where(Task.id == task_id)
-            .values(status=new_status, updated_at=datetime.utcnow()))
-        await db.commit()
-    
-    return RedirectResponse(url="/board", status_code=302)
+@app.post("/tasks/{tid}/move")
+def move_task(request: Request, tid: int, direction: str = Form(...)):
+    if not get_user(request): return RedirectResponse("/login")
+    db = SessionLocal()
+    task = db.query(Task).filter(Task.id == tid).first()
+    if task:
+        order = ["backlog", "todo", "doing", "done"]
+        idx = order.index(task.status.value)
+        if direction == "forward" and idx < 3: task.status = TaskStatus(order[idx+1])
+        elif direction == "backward" and idx > 0: task.status = TaskStatus(order[idx-1])
+        db.commit()
+    db.close()
+    return RedirectResponse("/board", status_code=302)
 
-@app.post("/tasks/{task_id}/delete")
-async def delete_task(request: Request, task_id: int):
-    user = await get_current_user(request)
-    if not user:
-        return RedirectResponse(url="/login")
-    
-    async with async_session() as db:
-        await db.execute(Task.__table__.delete().where(Task.id == task_id))
-        await db.commit()
-    
-    return RedirectResponse(url="/board", status_code=302)
+@app.post("/tasks/{tid}/delete")
+def delete_task(request: Request, tid: int):
+    if not get_user(request): return RedirectResponse("/login")
+    db = SessionLocal()
+    db.query(Task).filter(Task.id == tid).delete()
+    db.commit()
+    db.close()
+    return RedirectResponse("/board", status_code=302)
 
-@app.post("/tasks/{task_id}/update")
-async def update_task(
-    request: Request,
-    task_id: int,
-    documentation: str = Form(None)
-):
-    user = await get_current_user(request)
-    if not user:
-        return RedirectResponse(url="/login")
-    
-    async with async_session() as db:
-        await db.execute(Task.__table__.update()
-            .where(Task.id == task_id)
-            .values(documentation=documentation, updated_at=datetime.utcnow()))
-        await db.commit()
-    
-    return RedirectResponse(url="/board", status_code=302)
+@app.post("/tasks/{tid}/update")
+def update_task(request: Request, tid: int, documentation: str = Form("")):
+    if not get_user(request): return RedirectResponse("/login")
+    db = SessionLocal()
+    db.query(Task).filter(Task.id == tid).update({"documentation": documentation})
+    db.commit()
+    db.close()
+    return RedirectResponse("/board", status_code=302)
 
 @app.get("/changelog", response_class=HTMLResponse)
-async def changelog(request: Request, search: str = None):
-    user = await get_current_user(request)
-    if not user:
-        return RedirectResponse(url="/login")
-    
-    async with async_session() as db:
-        query = ChangeLog.__table__.select().order_by(ChangeLog.created_at.desc())
-        if search:
-            query = query.where(
-                (ChangeLog.title.ilike(f"%{search}%")) |
-                (ChangeLog.id.cast(String).ilike(f"%{search}%"))
-            )
-        result = await db.execute(query)
-        changes = result.fetchall()
-    
-    return templates.TemplateResponse("changelog.html", {
-        "request": request,
-        "changes": changes,
-        "search": search,
-        "user": user
-    })
+def changelog(request: Request, search: str = ""):
+    if not get_user(request): return RedirectResponse("/login")
+    db = SessionLocal()
+    q = db.query(ChangeLog).order_by(ChangeLog.created_at.desc())
+    if search: q = q.filter((ChangeLog.title.ilike(f"%{search}%")) | (ChangeLog.id.cast(String).ilike(f"%{search}%")))
+    changes = q.all()
+    db.close()
+    return templates.TemplateResponse("changelog.html", {"request": request, "changes": changes, "search": search, "user": get_user(request)})
 
 @app.post("/changelog/create")
-async def create_changelog(
-    request: Request,
-    task_id: int = Form(...),
-    title: str = Form(...),
-    description: str = Form(None),
-    pr_number: int = Form(None),
-    pr_link: str = Form(None),
-    test_results: str = Form(None)
-):
-    user = await get_current_user(request)
-    if not user:
-        return RedirectResponse(url="/login")
-    
-    async with async_session() as db:
-        await db.execute(ChangeLog.__table__.insert().values(
-            task_id=task_id,
-            title=title,
-            description=description,
-            pr_number=pr_number,
-            pr_link=pr_link,
-            test_results=test_results
-        ))
-        await db.commit()
-    
-    return RedirectResponse(url="/changelog", status_code=302)
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Startup
-# ─────────────────────────────────────────────────────────────────────────────
-
-@app.on_event("startup")
-async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    
-    # Create admin user if not exists
-    async with async_session() as db:
-        result = await db.execute(User.__table__.select().where(User.username == "admin"))
-        admin = result.fetchone()
-        
-        if not admin:
-            await db.execute(User.__table__.insert().values(
-                username="admin",
-                password_hash=get_password_hash("Y5zQ7hrQ75ERuLjDYHfX")
-            ))
-            await db.commit()
-            print("✅ Admin user created")
+def create_changelog(request: Request, task_id: int = Form(...), title: str = Form(...), 
+                     description: str = Form(""), pr_number: int = Form(None), pr_link: str = Form(""), test_results: str = Form("")):
+    if not get_user(request): return RedirectResponse("/login")
+    db = SessionLocal()
+    db.add(ChangeLog(task_id=task_id, title=title, description=description, pr_number=pr_number, pr_link=pr_link, test_results=test_results))
+    db.commit()
+    db.close()
+    return RedirectResponse("/changelog", status_code=302)
 
 if __name__ == "__main__":
     import uvicorn
