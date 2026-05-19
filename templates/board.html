@@ -276,6 +276,9 @@
                 {% if task.project %}
                 <div class="project">📁 {{ task.project }}</div>
                 {% endif %}
+                {% if task.description %}
+                <div style="font-size:12px;color:#666;margin:8px 0;line-height:1.4;">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
+                {% endif %}
                 <div class="actions">
                     <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
                         <input type="hidden" name="direction" value="forward">
@@ -307,6 +310,9 @@
                 </div>
                 {% if task.project %}
                 <div class="project">📁 {{ task.project }}</div>
+                {% endif %}
+                {% if task.description %}
+                <div style="font-size:12px;color:#666;margin:8px 0;line-height:1.4;">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
                 {% endif %}
                 <div class="actions">
                     <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
@@ -344,6 +350,9 @@
                 {% if task.project %}
                 <div class="project">📁 {{ task.project }}</div>
                 {% endif %}
+                {% if task.description %}
+                <div style="font-size:12px;color:#666;margin:8px 0;line-height:1.4;">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
+                {% endif %}
                 <div class="actions">
                     <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
                         <input type="hidden" name="direction" value="backward">
@@ -379,6 +388,9 @@
                 </div>
                 {% if task.project %}
                 <div class="project">📁 {{ task.project }}</div>
+                {% endif %}
+                {% if task.description %}
+                <div style="font-size:12px;color:#666;margin:8px 0;line-height:1.4;">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
                 {% endif %}
                 {% if task.documentation %}
                 <div style="font-size:12px;color:#666;margin-top:8px;">
