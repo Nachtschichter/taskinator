@@ -70,11 +70,12 @@ class Project(Base):
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False, "timeout": 30},
+    connect_args={"check_same_thread": False},
     pool_pre_ping=False,
-    pool_size=1
+    pool_size=1,
+    max_overflow=0
 )
-SessionLocal = sessionmaker(bind=engine)
+SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def verify_password(plain, hashed): return pwd_context.verify(plain, hashed)
@@ -108,17 +109,6 @@ async def add_charset_header(request: Request, call_next):
 @app.on_event("startup")
 def startup():
     Base.metadata.create_all(bind=engine)
-    # Enable WAL mode for better concurrency (optional, non-blocking)
-    db = SessionLocal()
-    try:
-        db.execute(text("PRAGMA journal_mode=WAL"))
-        db.execute(text("PRAGMA busy_timeout=30000"))
-        db.commit()
-        print("✅ SQLite WAL mode enabled")
-    except Exception as e:
-        print(f"⚠️  WAL mode skipped: {e}")
-    finally:
-        db.close()
     # Create admin user if not exists
     db = SessionLocal()
     try:
@@ -126,16 +116,23 @@ def startup():
             db.add(User(username="admin", password_hash=hash_password("Taskinator2026!")))
             db.commit()
             print("✅ Admin created")
-    finally:
+        db.close()
+    except Exception as e:
+        print(f"⚠️  Admin setup skipped: {e}")
         db.close()
     # Default projects if none exist
-    if db.query(Project).count() == 0:
-        default_projects = ["tradershome", "OpenTradingClaw", "taskinator", "infrastructure"]
-        for pname in default_projects:
-            db.add(Project(name=pname))
-        db.commit()
-        print(f"✅ Default projects created: {default_projects}")
-    db.close()
+    db = SessionLocal()
+    try:
+        if db.query(Project).count() == 0:
+            default_projects = ["tradershome", "OpenTradingClaw", "taskinator", "infrastructure"]
+            for pname in default_projects:
+                db.add(Project(name=pname))
+            db.commit()
+            print(f"✅ Default projects created: {default_projects}")
+        db.close()
+    except Exception as e:
+        print(f"⚠️  Project setup skipped: {e}")
+        db.close()
 
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request):
