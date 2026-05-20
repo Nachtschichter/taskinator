@@ -108,31 +108,9 @@ async def add_charset_header(request: Request, call_next):
 
 @app.on_event("startup")
 def startup():
+    # Initialize database tables (single operation)
     Base.metadata.create_all(bind=engine)
-    # Create admin user if not exists
-    db = SessionLocal()
-    try:
-        if not db.query(User).filter(User.username == "admin").first():
-            db.add(User(username="admin", password_hash=hash_password("Taskinator2026!")))
-            db.commit()
-            print("✅ Admin created")
-        db.close()
-    except Exception as e:
-        print(f"⚠️  Admin setup skipped: {e}")
-        db.close()
-    # Default projects if none exist
-    db = SessionLocal()
-    try:
-        if db.query(Project).count() == 0:
-            default_projects = ["tradershome", "OpenTradingClaw", "taskinator", "infrastructure"]
-            for pname in default_projects:
-                db.add(Project(name=pname))
-            db.commit()
-            print(f"✅ Default projects created: {default_projects}")
-        db.close()
-    except Exception as e:
-        print(f"⚠️  Project setup skipped: {e}")
-        db.close()
+    print("✅ Database initialized")
 
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request):
