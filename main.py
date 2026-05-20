@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, DateTime, Enum
+from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, DateTime, Enum, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime, timedelta
 import enum
@@ -111,8 +111,8 @@ def startup():
     # Enable WAL mode for better concurrency
     db = SessionLocal()
     try:
-        db.execute("PRAGMA journal_mode=WAL")
-        db.execute("PRAGMA busy_timeout=30000")
+        db.execute(text("PRAGMA journal_mode=WAL"))
+        db.execute(text("PRAGMA busy_timeout=30000"))
         db.commit()
         print("✅ SQLite WAL mode enabled")
     finally:
