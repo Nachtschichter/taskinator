@@ -1,0 +1,6 @@
+node_modules/
+.env
+results/artifacts/
+results/html/
+*.log
+.DS_Store
