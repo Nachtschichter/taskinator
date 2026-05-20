@@ -108,13 +108,15 @@ async def add_charset_header(request: Request, call_next):
 @app.on_event("startup")
 def startup():
     Base.metadata.create_all(bind=engine)
-    # Enable WAL mode for better concurrency
+    # Enable WAL mode for better concurrency (optional, non-blocking)
     db = SessionLocal()
     try:
         db.execute(text("PRAGMA journal_mode=WAL"))
         db.execute(text("PRAGMA busy_timeout=30000"))
         db.commit()
         print("✅ SQLite WAL mode enabled")
+    except Exception as e:
+        print(f"⚠️  WAL mode skipped: {e}")
     finally:
         db.close()
     # Create admin user if not exists
