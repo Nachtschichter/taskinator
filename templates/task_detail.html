@@ -263,12 +263,15 @@
             <div>
                 <div class="card">
                     <h2>📄 Dokumentation</h2>
-                    <form action="/tasks/{{ task.id }}/update-docs" method="POST">
-                        <textarea name="documentation" placeholder="Dokumentation, Notizen, Links, etc.">{{ task.documentation or '' }}</textarea>
-                        <div style="margin-top: 16px;">
-                            <button type="submit" class="btn btn-primary">💾 Speichern</button>
-                        </div>
-                    </form>
+                    {% if task.documentation %}
+                    <div class="documentation-content" style="line-height: 1.6; color: #333;">
+                        {{ task.documentation | safe }}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>Keine Dokumentation vorhanden.</p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

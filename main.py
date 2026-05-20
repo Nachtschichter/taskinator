@@ -290,15 +290,6 @@ def task_detail(request: Request, tid: int):
     html_content = templates.get_template("task_detail.html").render({"request": request, "task": task, "changelog": changelog_entries, "user": get_user(request)})
     return Response(content=html_content, media_type="text/html; charset=utf-8")
 
-@app.post("/tasks/{tid}/update-docs")
-def task_update_docs(request: Request, tid: int, documentation: str = Form("")):
-    if not get_user(request): return RedirectResponse("/login")
-    db = SessionLocal()
-    db.query(Task).filter(Task.id == tid).update({"documentation": documentation})
-    db.commit()
-    db.close()
-    return RedirectResponse(f"/tasks/{tid}", status_code=302)
-
 
 # Task Sync API - Für Agent Visibility
 @app.get("/api/tasks")
