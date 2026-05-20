@@ -68,7 +68,12 @@ class Project(Base):
     name = Column(String(100), unique=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False, "timeout": 30},
+    pool_pre_ping=False,
+    pool_size=1
+)
 SessionLocal = sessionmaker(bind=engine)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -103,11 +108,24 @@ async def add_charset_header(request: Request, call_next):
 @app.on_event("startup")
 def startup():
     Base.metadata.create_all(bind=engine)
+    # Enable WAL mode for better concurrency
     db = SessionLocal()
-    if not db.query(User).filter(User.username == "admin").first():
-        db.add(User(username="admin", password_hash=hash_password("Taskinator2026!")))
+    try:
+        db.execute("PRAGMA journal_mode=WAL")
+        db.execute("PRAGMA busy_timeout=30000")
         db.commit()
-        print("✅ Admin created")
+        print("✅ SQLite WAL mode enabled")
+    finally:
+        db.close()
+    # Create admin user if not exists
+    db = SessionLocal()
+    try:
+        if not db.query(User).filter(User.username == "admin").first():
+            db.add(User(username="admin", password_hash=hash_password("Taskinator2026!")))
+            db.commit()
+            print("✅ Admin created")
+    finally:
+        db.close()
     # Default projects if none exist
     if db.query(Project).count() == 0:
         default_projects = ["tradershome", "OpenTradingClaw", "taskinator", "infrastructure"]
