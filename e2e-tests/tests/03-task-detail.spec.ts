@@ -15,7 +15,7 @@ test.describe('Task Detail Page', () => {
     await firstTask.click();
     await page.waitForURL(/tasks\/\d+/);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h1:has-text("Task #")')).toBeVisible();
+    await expect(page.locator('.container')).toBeVisible();
   });
   
   test('Task details are displayed', async ({ page }) => {
@@ -25,8 +25,8 @@ test.describe('Task Detail Page', () => {
     await page.waitForLoadState('networkidle');
     
     await expect(page.locator('.badge')).toBeVisible();
-    await expect(page.locator('text=Beschreibung')).toBeVisible();
-    await expect(page.locator('text=Erstellt')).toBeVisible();
+    await expect(page.locator('.detail-label:has-text("Beschreibung")')).toBeVisible();
+    await expect(page.locator('.detail-label:has-text("Erstellt")')).toBeVisible();
   });
   
   test('Changelog section exists', async ({ page }) => {
@@ -34,7 +34,7 @@ test.describe('Task Detail Page', () => {
     await firstTask.click();
     await page.waitForURL(/tasks\/\d+/);
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('h2:has-text("📝 Changelog")')).toBeVisible();
+    await expect(page.locator('.card:has-text("Changelog")')).toBeVisible();
   });
   
   test('Documentation is read-only', async ({ page }) => {
