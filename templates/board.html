@@ -182,10 +182,9 @@
         <div class="column" id="backlog">
             <div class="column-header">
                 <span>📋 Backlog</span>
-                <span class="count">{{ counts.backlog }}</span>
+                <span class="count">{{ columns.backlog|length }}</span>
             </div>
-            {% for task in tasks %}
-            {% if task.status == 'backlog' %}
+            {% for task in columns.backlog %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
@@ -200,7 +199,6 @@
                     <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
                 </div>
             </div>
-            {% endif %}
             {% endfor %}
             <div class="add-task-card" onclick="openModal()">
                 + Add Task
@@ -210,10 +208,9 @@
         <div class="column" id="todo">
             <div class="column-header">
                 <span>✅ To Do</span>
-                <span class="count">{{ counts.todo }}</span>
+                <span class="count">{{ columns.todo|length }}</span>
             </div>
-            {% for task in tasks %}
-            {% if task.status == 'todo' %}
+            {% for task in columns.todo %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
@@ -228,17 +225,15 @@
                     <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
                 </div>
             </div>
-            {% endif %}
             {% endfor %}
         </div>
 
         <div class="column" id="doing">
             <div class="column-header">
                 <span>🔄 Doing</span>
-                <span class="count">{{ counts.doing }}</span>
+                <span class="count">{{ columns.doing|length }}</span>
             </div>
-            {% for task in tasks %}
-            {% if task.status == 'doing' %}
+            {% for task in columns.doing %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
@@ -253,17 +248,15 @@
                     <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
                 </div>
             </div>
-            {% endif %}
             {% endfor %}
         </div>
 
         <div class="column" id="done">
             <div class="column-header">
                 <span>✅ Done</span>
-                <span class="count">{{ counts.done }}</span>
+                <span class="count">{{ columns.done|length }}</span>
             </div>
-            {% for task in tasks %}
-            {% if task.status == 'done' %}
+            {% for task in columns.done %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
@@ -278,7 +271,6 @@
                     <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
                 </div>
             </div>
-            {% endif %}
             {% endfor %}
         </div>
     </div>
