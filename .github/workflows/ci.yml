@@ -44,7 +44,10 @@ jobs:
       
       - name: Start Taskinator container
         run: |
-          docker run -d --name taskinator -p 9900:9900 taskinator-taskinator:latest
+          docker run -d --name taskinator -p 9900:9900 \
+            -e SECRET_KEY="ci-test-secret-key-12345" \
+            -e ADMIN_PASSWORD="${{ secrets.ADMIN_PASSWORD }}" \
+            taskinator-taskinator:latest
           # Wait for container to be healthy
           for i in {1..30}; do
             if curl -f http://localhost:9900/login >/dev/null 2>&1; then
