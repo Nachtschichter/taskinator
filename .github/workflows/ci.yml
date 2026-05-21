@@ -36,19 +36,27 @@ jobs:
     runs-on: ubuntu-latest
     needs: [lint-build]
     
-    services:
-      taskinator:
-        image: taskinator-taskinator:latest
-        ports:
-          - 9900:9900
-        options: >-
-          --health-cmd "curl -f http://localhost:9900/login || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Build Docker image
+        run: docker build -t taskinator-taskinator:latest .
+      
+      - name: Start Taskinator container
+        run: |
+          docker run -d --name taskinator -p 9900:9900 taskinator-taskinator:latest
+          # Wait for container to be healthy
+          for i in {1..30}; do
+            if curl -f http://localhost:9900/login >/dev/null 2>&1; then
+              echo "✅ Taskinator is ready"
+              exit 0
+            fi
+            echo "Waiting for Taskinator... ($i/30)"
+            sleep 2
+          done
+          echo "❌ Taskinator failed to start"
+          docker logs taskinator
+          exit 1
       
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -77,3 +85,9 @@ jobs:
           name: e2e-results
           path: e2e-tests/results/
           retention-days: 7
+      
+      - name: Cleanup container
+        if: always()
+        run: |
+          docker stop taskinator || true
+          docker rm taskinator || true
