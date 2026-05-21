@@ -317,41 +317,44 @@ def admin_delete_project(request: Request, pid: int):
 def task_detail(request: Request, tid: int):
     if not get_user(request): return RedirectResponse("/login")
     db = SessionLocal()
-    task = db.query(Task).filter(Task.id == tid).first()
-    if not task:
+    try:
+        task = db.query(Task).filter(Task.id == tid).first()
+        if not task:
+            db.close()
+            return Response(content="Task not found", status_code=404, media_type="text/plain")
+        changelog_entries = db.query(ChangeLog).filter(ChangeLog.task_id == tid).order_by(ChangeLog.created_at.desc()).all()
         db.close()
-        return Response(content="Task not found", status_code=404, media_type="text/plain")
-    changelog_entries = db.query(ChangeLog).filter(ChangeLog.task_id == tid).order_by(ChangeLog.created_at.desc()).all()
-    db.close()
-    
-    # Helper function to extract sections from documentation
-    def extract_section(doc: str, section_name: str) -> str:
-        """Extract content between section headers from markdown-style documentation."""
-        if not doc:
-            return ""
         
-        import re
-        # Match ## Section Name or ### Section Name
-        pattern = rf'(?:##|###)\s*{re.escape(section_name)}\s*\n(.*?)(?=\n##|\n###|$)'
-        match = re.search(pattern, doc, re.DOTALL | re.IGNORECASE)
-        if match:
-            content = match.group(1).strip()
-            # Convert markdown to basic HTML
-            content = re.sub(r'^-\s+(.*)$', r'<li>\1</li>', content, flags=re.MULTILINE)
-            content = re.sub(r'\*\*(.*)\*\*', r'<strong>\1</strong>', content)
-            content = re.sub(r'`([^`]+)`', r'<code>\1</code>', content)
-            content = re.sub(r'\n', r'<br>', content)
-            return f'<div class="section-content">{content}</div>'
-        return ""
-    
-    html_content = templates.get_template("task_detail.html").render({
-        "request": request,
-        "task": task,
-        "changelog": changelog_entries,
-        "user": get_user(request),
-        "extract_section": extract_section
-    })
-    return Response(content=html_content, media_type="text/html; charset=utf-8")
+        # Safe helper function to extract sections from documentation
+        def extract_section(doc: str, section_name: str) -> str:
+            try:
+                if not doc:
+                    return ""
+                import re
+                pattern = rf'(?:##|###)\s*{re.escape(section_name)}\s*\n(.*?)(?=\n##|\n###|$)'
+                match = re.search(pattern, doc, re.DOTALL | re.IGNORECASE)
+                if match:
+                    content = match.group(1).strip()
+                    content = re.sub(r'^-\s+(.*)$', r'<li>\1</li>', content, flags=re.MULTILINE)
+                    content = re.sub(r'\*\*(.*)\*\*', r'<strong>\1</strong>', content)
+                    content = re.sub(r'`([^`]+)`', r'<code>\1</code>', content)
+                    content = re.sub(r'\n', r'<br>', content)
+                    return f'<div class="section-content">{content}</div>'
+                return ""
+            except:
+                return ""
+        
+        html_content = templates.get_template("task_detail.html").render({
+            "request": request,
+            "task": task,
+            "changelog": changelog_entries,
+            "user": get_user(request),
+            "extract_section": extract_section
+        })
+        return Response(content=html_content, media_type="text/html; charset=utf-8")
+    except Exception as e:
+        db.close()
+        return Response(content=f"Error: {str(e)}", status_code=500, media_type="text/plain")
 
 
 # Task Sync API - Für Agent Visibility
