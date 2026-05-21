@@ -1,406 +1,391 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task #{{ task.id }} - {{ task.title }}</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 { font-size: 24px; }
-        .header nav a {
-            color: white;
-            text-decoration: none;
-            margin-left: 20px;
-            padding: 8px 16px;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.2);
-            transition: background 0.3s;
-        }
-        .header nav a:hover { background: rgba(255,255,255,0.3); }
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 30px;
-        }
-        .breadcrumb {
-            margin-bottom: 20px;
-        }
-        .breadcrumb a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        .breadcrumb a:hover { text-decoration: underline; }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .card h2 {
-            font-size: 20px;
-            margin-bottom: 16px;
-            color: #333;
-        }
-        .card h3 {
-            font-size: 16px;
-            margin-bottom: 12px;
-            color: #555;
-        }
-        .task-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 16px;
-        }
-        .task-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #333;
-        }
-        .task-id {
-            font-size: 14px;
-            color: #888;
-            margin-left: 12px;
-        }
-        .task-meta {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-        }
-        .badge {
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .badge.priority-hoch { background: #fee; color: #c00; }
-        .badge.priority-mittel { background: #fff3cd; color: #856404; }
-        .badge.priority-niedrig { background: #d4edda; color: #155724; }
-        .badge.category-feature { background: #e7f3ff; color: #0066cc; }
-        .badge.category-fix { background: #fff8e1; color: #ff8f00; }
-        .badge.category-hotfix { background: #f8d7da; color: #721c24; }
-        .badge.status-backlog { background: #e0e0e0; color: #666; }
-        .badge.status-todo { background: #e3f2fd; color: #1976d2; }
-        .badge.status-doing { background: #fff3e0; color: #f57c00; }
-        .badge.status-done { background: #e8f5e9; color: #388e3c; }
-        .detail-row {
-            margin-bottom: 12px;
-        }
-        .detail-label {
-            font-weight: 600;
-            color: #555;
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-        .detail-value {
-            color: #333;
-            font-size: 14px;
-        }
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: inherit;
-            resize: vertical;
-            min-height: 200px;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        .changelog-list {
-            list-style: none;
-        }
-        .changelog-item {
-            padding: 16px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            border-left: 4px solid #667eea;
-        }
-        .changelog-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        .changelog-meta {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 8px;
-        }
-        .changelog-description {
-            font-size: 14px;
-            color: #555;
-            line-height: 1.6;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #888;
-        }
-        .documentation-structured {
-            line-height: 1.6;
-            color: #333;
-        }
-        .doc-section {
-            margin-bottom: 24px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        .doc-section:last-child {
-            border-bottom: none;
-        }
-        .doc-section h3 {
-            font-size: 16px;
-            color: #667eea;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-        .doc-content {
-            color: #333;
-            font-size: 14px;
-        }
-        .doc-content p {
-            margin-bottom: 8px;
-        }
-        .doc-content pre {
-            background: #f8f9fa;
-            padding: 12px;
-            border-radius: 6px;
-            overflow-x: auto;
-            font-size: 13px;
-            border: 1px solid #e0e0e0;
-        }
-        .doc-content code {
-            background: #f8f9fa;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 13px;
-        }
-        .doc-content ul, .doc-content ol {
-            margin-left: 20px;
-            margin-bottom: 8px;
-        }
-        .doc-content li {
-            margin-bottom: 4px;
-        }
-        .text-muted {
-            color: #888;
-            font-style: italic;
-        }
-        @media (max-width: 768px) {
-            .grid { grid-template-columns: 1fr; }
-        }
-    </style>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Task Dokumentation: {{ task.title }}</title>
+ <style>
+ :root {
+ --primary-color: #2c3e50;
+ --secondary-color: #3498db;
+ --success-color: #27ae60;
+ --warning-color: #f39c12;
+ --danger-color: #e74c3c;
+ --light-bg: #f8f9fa;
+ --dark-bg: #343a40;
+ --border-color: #dee2e6;
+ --text-color: #212529;
+ --text-light: #6c757d;
+ }
+
+ * {
+ margin: 0;
+ padding: 0;
+ box-sizing: border-box;
+ }
+
+ body {
+ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+ line-height: 1.6;
+ color: var(--text-color);
+ background-color: #f5f7fa;
+ padding: 20px;
+ }
+
+ .container {
+ max-width: 1200px;
+ margin: 0 auto;
+ background: white;
+ border-radius: 10px;
+ box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+ overflow: hidden;
+ }
+
+ .header {
+ background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+ color: white;
+ padding: 30px;
+ text-align: center;
+ }
+
+ .header h1 {
+ font-size: 2.2rem;
+ margin-bottom: 10px;
+ }
+
+ .header-meta {
+ display: flex;
+ justify-content: space-between;
+ flex-wrap: wrap;
+ gap: 15px;
+ margin-top: 20px;
+ font-size: 0.9rem;
+ opacity: 0.9;
+ }
+
+ .meta-item {
+ display: flex;
+ align-items: center;
+ gap: 5px;
+ }
+
+ .content {
+ padding: 30px;
+ }
+
+ .section {
+ margin-bottom: 40px;
+ border-left: 4px solid var(--secondary-color);
+ padding-left: 20px;
+ }
+
+ .section:last-child {
+ margin-bottom: 0;
+ }
+
+ .section-header {
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ margin-bottom: 15px;
+ padding-bottom: 10px;
+ border-bottom: 1px solid var(--border-color);
+ }
+
+ .section-header h2 {
+ font-size: 1.5rem;
+ color: var(--primary-color);
+ }
+
+ .section-header .emoji {
+ font-size: 1.8rem;
+ }
+
+ .section-content {
+ padding: 15px;
+ background-color: var(--light-bg);
+ border-radius: 8px;
+ }
+
+ .section-content p {
+ margin-bottom: 15px;
+ }
+
+ .section-content p:last-child {
+ margin-bottom: 0;
+ }
+
+ pre {
+ background: #2d2d2d;
+ color: #f8f8f2;
+ padding: 15px;
+ border-radius: 5px;
+ overflow-x: auto;
+ margin: 15px 0;
+ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+ font-size: 0.9rem;
+ line-height: 1.5;
+ }
+
+ code {
+ font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+ background: #f0f0f0;
+ padding: 2px 5px;
+ border-radius: 3px;
+ font-size: 0.9rem;
+ }
+
+ pre code {
+ background: transparent;
+ padding: 0;
+ }
+
+ table {
+ width: 100%;
+ border-collapse: collapse;
+ margin: 15px 0;
+ font-size: 0.95rem;
+ }
+
+ th, td {
+ padding: 12px;
+ text-align: left;
+ border-bottom: 1px solid var(--border-color);
+ }
+
+ th {
+ background-color: var(--primary-color);
+ color: white;
+ font-weight: 600;
+ }
+
+ tr:nth-child(even) {
+ background-color: rgba(0, 0, 0, 0.02);
+ }
+
+ tr:hover {
+ background-color: rgba(0, 0, 0, 0.05);
+ }
+
+ .badge {
+ display: inline-block;
+ padding: 5px 10px;
+ border-radius: 20px;
+ font-size: 0.8rem;
+ font-weight: 600;
+ text-transform: uppercase;
+ }
+
+ .badge-success {
+ background-color: rgba(39, 174, 96, 0.1);
+ color: var(--success-color);
+ }
+
+ .badge-warning {
+ background-color: rgba(243, 156, 18, 0.1);
+ color: var(--warning-color);
+ }
+
+ .badge-danger {
+ background-color: rgba(231, 76, 60, 0.1);
+ color: var(--danger-color);
+ }
+
+ .badge-info {
+ background-color: rgba(52, 152, 219, 0.1);
+ color: var(--secondary-color);
+ }
+
+ ul, ol {
+ margin: 15px 0;
+ padding-left: 25px;
+ }
+
+ li {
+ margin-bottom: 8px;
+ }
+
+ a {
+ color: var(--secondary-color);
+ text-decoration: none;
+ transition: color 0.2s;
+ }
+
+ a:hover {
+ color: var(--primary-color);
+ text-decoration: underline;
+ }
+
+ @media (max-width: 768px) {
+ .header { padding: 20px; }
+ .header h1 { font-size: 1.8rem; }
+ .header-meta { flex-direction: column; align-items: center; }
+ .content { padding: 20px; }
+ .section-header { flex-direction: column; align-items: flex-start; gap: 5px; }
+ table { display: block; overflow-x: auto; }
+ }
+
+ .footer {
+ background-color: var(--dark-bg);
+ color: rgba(255, 255, 255, 0.7);
+ text-align: center;
+ padding: 15px;
+ font-size: 0.85rem;
+ }
+
+ .footer a {
+ color: rgba(255, 255, 255, 0.9);
+ }
+
+ @media print {
+ body { background: white; padding: 0; }
+ .container { box-shadow: none; border: 1px solid #ddd; }
+ .header { background: var(--primary-color); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+ .section-header { page-break-after: avoid; }
+ }
+ </style>
 </head>
 <body>
-    <div class="header">
-        <h1>📋 Taskinator - Task #{{ task.id }}</h1>
-        <nav>
-            <a href="/board">Board</a>
-            <a href="/changelog">Changelog</a>
-            <a href="/admin/projects">Projekte</a>
-            <a href="/logout">Logout</a>
-        </nav>
-    </div>
-    
-    <div class="container">
-        <div class="breadcrumb">
-            <a href="/board">← Zurück zum Board</a>
-        </div>
-        
-        <div class="grid">
-            <div>
-                <div class="card">
-                    <div class="task-header">
-                        <div>
-                            <span class="task-title">{{ task.title }}</span>
-                            <span class="task-id">#{{ task.id }}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="task-meta">
-                        <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
-                        <span class="badge category-{{ task.category }}">{{ task.category }}</span>
-                        <span class="badge status-{{ task.status }}">{{ task.status }}</span>
-                        {% if task.project %}
-                        <span class="badge" style="background: #e7f3ff; color: #0066cc;">📁 {{ task.project }}</span>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="detail-row">
-                        <div class="detail-label">Beschreibung</div>
-                        <div class="detail-value">{{ task.description or 'Keine Beschreibung' }}</div>
-                    </div>
-                    
-                    <div class="detail-row">
-                        <div class="detail-label">Erstellt am</div>
-                        <div class="detail-value">{{ task.created_at.strftime('%d.%m.%Y %H:%M') if task.created_at else 'N/A' }} UTC</div>
-                    </div>
-                </div>
-                
-                <div class="card">
-                    <h2>📝 Changelog</h2>
-                    {% if changelog %}
-                    <ul class="changelog-list">
-                        {% for entry in changelog %}
-                        <li class="changelog-item">
-                            <div class="changelog-title">{{ entry.title }}</div>
-                            <div class="changelog-meta">
-                                {{ entry.created_at.strftime('%d.%m.%Y %H:%M') if entry.created_at else 'N/A' }} UTC
-                                {% if entry.pr_number %} · PR #{{ entry.pr_number }}{% endif %}
-                            </div>
-                            {% if entry.description %}
-                            <div class="changelog-description">{{ entry.description }}</div>
-                            {% endif %}
-                            {% if entry.test_results %}
-                            <div class="changelog-description" style="margin-top: 8px;">
-                                <strong>Test:</strong> {{ entry.test_results }}
-                            </div>
-                            {% endif %}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                    <div class="empty-state">
-                        <p>Noch keine Changelog-Einträge für diesen Task.</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div>
-                <div class="card">
-                    <h2>📄 Dokumentation</h2>
-                    <div class="documentation-structured">
-                        <!-- 1. Titel -->
-                        <div class="doc-section">
-                            <h3>📋 Titel</h3>
-                            <div class="doc-content">
-                                {% if task.documentation and ('## Titel' in task.documentation or '### Titel' in task.documentation) %}
-                                    {{ extract_section(task.documentation, 'Titel') | safe }}
-                                {% else %}
-                                    <p class="text-muted">{{ task.title }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- 2. Problembeschreibung -->
-                        <div class="doc-section">
-                            <h3>⚠️ Problembeschreibung</h3>
-                            <div class="doc-content">
-                                {% if task.documentation %}
-                                    {{ extract_section(task.documentation, 'Problembeschreibung') | safe }}
-                                {% else %}
-                                    <p class="text-muted">{{ task.description or 'Keine Problembeschreibung vorhanden.' }}</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- 3. Lösungsbeschreibung -->
-                        <div class="doc-section">
-                            <h3>✅ Lösungsbeschreibung</h3>
-                            <div class="doc-content">
-                                {% if task.documentation %}
-                                    {{ extract_section(task.documentation, 'Lösungsbeschreibung') | safe }}
-                                {% else %}
-                                    <p class="text-muted">Keine Lösungsbeschreibung vorhanden.</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- 4. Code Review Protokoll -->
-                        <div class="doc-section">
-                            <h3>🔍 Code Review Protokoll</h3>
-                            <div class="doc-content">
-                                {% if task.documentation %}
-                                    {{ extract_section(task.documentation, 'Code Review') | safe }}
-                                {% else %}
-                                    <p class="text-muted">Kein Code Review Protokoll vorhanden.</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- 5. Testprotokoll -->
-                        <div class="doc-section">
-                            <h3>🧪 Testprotokoll</h3>
-                            <div class="doc-content">
-                                {% if task.documentation %}
-                                    {{ extract_section(task.documentation, 'Testprotokoll') | safe }}
-                                {% else %}
-                                    <p class="text-muted">Kein Testprotokoll vorhanden.</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- 6. PR Informationen -->
-                        <div class="doc-section">
-                            <h3>🔗 PR Informationen</h3>
-                            <div class="doc-content">
-                                {% if task.documentation %}
-                                    {{ extract_section(task.documentation, 'PR') | safe }}
-                                {% else %}
-                                    <p class="text-muted">Keine PR Informationen vorhanden.</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <!-- 7. Deployment Datum -->
-                        <div class="doc-section">
-                            <h3>🚀 Deployment</h3>
-                            <div class="doc-content">
-                                {% if task.documentation %}
-                                    {{ extract_section(task.documentation, 'Deployment') | safe }}
-                                {% else %}
-                                    <p class="text-muted">Keine Deployment Informationen vorhanden.</p>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+ <div class="container">
+ <div class="header">
+ <h1>📋 {{ task.title }}</h1>
+ <div class="header-meta">
+ <div class="meta-item">
+ <span>📅 Erstellt:</span>
+ <strong>{{ task.created_at.strftime('%d.%m.%Y') if task.created_at else 'N/A' }}</strong>
+ </div>
+ <div class="meta-item">
+ <span>🏷️ Status:</span>
+ <span class="badge badge-{% if task.status.value == 'done' %}success{% elif task.status.value == 'doing' %}warning{% else %}info{% endif %}">{{ task.status.value }}</span>
+ </div>
+ <div class="meta-item">
+ <span>📁 Projekt:</span>
+ <strong>{{ task.project or 'N/A' }}</strong>
+ </div>
+ </div>
+ </div>
+
+ <div class="content">
+ <div class="section">
+ <div class="section-header">
+ <span class="emoji">📋</span>
+ <h2>Titel</h2>
+ </div>
+ <div class="section-content">
+ <p><strong>{{ task.title }}</strong></p>
+ {% if task.description %}
+ <p>{{ task.description }}</p>
+ {% endif %}
+ </div>
+ </div>
+
+ <div class="section">
+ <div class="section-header">
+ <span class="emoji">⚠️</span>
+ <h2>Problembeschreibung</h2>
+ </div>
+ <div class="section-content">
+ {% if task.documentation and extract_section(task.documentation, 'Problembeschreibung') %}
+ {{ extract_section(task.documentation, 'Problembeschreibung') | safe }}
+ {% else %}
+ <p><em>Keine Problembeschreibung vorhanden.</em></p>
+ {% endif %}
+ </div>
+ </div>
+
+ <div class="section">
+ <div class="section-header">
+ <span class="emoji">✅</span>
+ <h2>Lösungsbeschreibung</h2>
+ </div>
+ <div class="section-content">
+ {% if task.documentation and extract_section(task.documentation, 'Lösungsbeschreibung') %}
+ {{ extract_section(task.documentation, 'Lösungsbeschreibung') | safe }}
+ {% else %}
+ <p><em>Keine Lösungsbeschreibung vorhanden.</em></p>
+ {% endif %}
+ </div>
+ </div>
+
+ <div class="section">
+ <div class="section-header">
+ <span class="emoji">🔍</span>
+ <h2>Code Review Protokoll</h2>
+ </div>
+ <div class="section-content">
+ {% if task.documentation and extract_section(task.documentation, 'Code Review') %}
+ {{ extract_section(task.documentation, 'Code Review') | safe }}
+ {% else %}
+ <p><em>Kein Code Review Protokoll vorhanden.</em></p>
+ {% endif %}
+ </div>
+ </div>
+
+ <div class="section">
+ <div class="section-header">
+ <span class="emoji">🧪</span>
+ <h2>Testprotokoll</h2>
+ </div>
+ <div class="section-content">
+ {% if task.documentation and extract_section(task.documentation, 'Testprotokoll') %}
+ {{ extract_section(task.documentation, 'Testprotokoll') | safe }}
+ {% else %}
+ <p><em>Kein Testprotokoll vorhanden.</em></p>
+ {% endif %}
+ </div>
+ </div>
+
+ <div class="section">
+ <div class="section-header">
+ <span class="emoji">🔗</span>
+ <h2>PR Informationen</h2>
+ </div>
+ <div class="section-content">
+ {% if task.documentation and extract_section(task.documentation, 'PR') %}
+ {{ extract_section(task.documentation, 'PR') | safe }}
+ {% else %}
+ <p><em>Keine PR Informationen vorhanden.</em></p>
+ {% endif %}
+ </div>
+ </div>
+
+ <div class="section">
+ <div class="section-header">
+ <span class="emoji">🚀</span>
+ <h2>Deployment</h2>
+ </div>
+ <div class="section-content">
+ {% if task.documentation and extract_section(task.documentation, 'Deployment') %}
+ {{ extract_section(task.documentation, 'Deployment') | safe }}
+ {% else %}
+ <p><em>Keine Deployment Informationen vorhanden.</em></p>
+ {% endif %}
+ </div>
+ </div>
+
+ {% if changelog %}
+ <div class="section">
+ <div class="section-header">
+ <span class="emoji">📝</span>
+ <h2>Changelog</h2>
+ </div>
+ <div class="section-content">
+ <ul>
+ {% for entry in changelog %}
+ <li>
+ <strong>{{ entry.title }}</strong> - {{ entry.created_at.strftime('%d.%m.%Y %H:%M') if entry.created_at else 'N/A' }}
+ {% if entry.description %}<br><small>{{ entry.description }}</small>{% endif %}
+ </li>
+ {% endfor %}
+ </ul>
+ </div>
+ </div>
+ {% endif %}
+ </div>
+
+ <div class="footer">
+ <p>Taskinator Documentation | Task #{{ task.id }} | <a href="#" onclick="window.print()">Drucken</a></p>
+ </div>
+ </div>
 </body>
 </html>
