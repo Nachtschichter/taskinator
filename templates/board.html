@@ -185,12 +185,12 @@
                 <span class="count">{{ counts.backlog }}</span>
             </div>
             {% for task in tasks %}
-            {% if task.status.value == 'backlog' %}
+            {% if task.status == 'backlog' %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
-                    <span class="badge priority-{{ task.priority.value }}">{{ task.priority.value }}</span>
-                    <span class="badge category-{{ task.category.value }}">{{ task.category.value }}</span>
+                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
                 </div>
                 {% if task.description %}
                 <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
@@ -213,12 +213,12 @@
                 <span class="count">{{ counts.todo }}</span>
             </div>
             {% for task in tasks %}
-            {% if task.status.value == 'todo' %}
+            {% if task.status == 'todo' %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
-                    <span class="badge priority-{{ task.priority.value }}">{{ task.priority.value }}</span>
-                    <span class="badge category-{{ task.category.value }}">{{ task.category.value }}</span>
+                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
                 </div>
                 {% if task.description %}
                 <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
@@ -238,12 +238,12 @@
                 <span class="count">{{ counts.doing }}</span>
             </div>
             {% for task in tasks %}
-            {% if task.status.value == 'doing' %}
+            {% if task.status == 'doing' %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
-                    <span class="badge priority-{{ task.priority.value }}">{{ task.priority.value }}</span>
-                    <span class="badge category-{{ task.category.value }}">{{ task.category.value }}</span>
+                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
                 </div>
                 {% if task.description %}
                 <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
@@ -263,12 +263,12 @@
                 <span class="count">{{ counts.done }}</span>
             </div>
             {% for task in tasks %}
-            {% if task.status.value == 'done' %}
+            {% if task.status == 'done' %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
-                    <span class="badge priority-{{ task.priority.value }}">{{ task.priority.value }}</span>
-                    <span class="badge category-{{ task.category.value }}">{{ task.category.value }}</span>
+                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
+                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
                 </div>
                 {% if task.description %}
                 <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
