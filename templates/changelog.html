@@ -4,32 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taskinator - Changelog</title>
+    <link rel="stylesheet" href="/static/style.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 { font-size: 24px; }
-        .header nav a {
-            color: white;
-            text-decoration: none;
-            margin-left: 20px;
-            padding: 8px 16px;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.2);
-            transition: background 0.3s;
-        }
-        .header nav a:hover { background: rgba(255,255,255,0.3); }
+        /* Changelog-specific styles */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -49,17 +26,17 @@
         .search-bar input {
             flex: 1;
             padding: 12px 16px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
             font-size: 16px;
         }
         .search-bar input:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: var(--secondary-color);
         }
         .search-bar button {
             padding: 12px 24px;
-            background: #667eea;
+            background: var(--secondary-color);
             color: white;
             border: none;
             border-radius: 8px;
@@ -72,10 +49,10 @@
             padding: 24px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-left: 4px solid #667eea;
+            border-left: 4px solid var(--secondary-color);
         }
         .changelog-entry h2 {
-            color: #333;
+            color: var(--text-color);
             margin-bottom: 12px;
             font-size: 20px;
         }
@@ -85,50 +62,34 @@
             flex-wrap: wrap;
             margin-bottom: 16px;
             font-size: 14px;
-            color: #666;
+            color: var(--text-light);
         }
         .changelog-entry .meta span {
-            background: #f0f0f0;
+            background: var(--light-bg);
             padding: 4px 12px;
             border-radius: 12px;
         }
         .changelog-entry .description {
-            color: #555;
+            color: var(--text-light);
             margin-bottom: 16px;
             line-height: 1.6;
         }
         .changelog-entry .pr-link {
             display: inline-block;
-            background: #e7f3ff;
-            color: #0066cc;
             padding: 8px 16px;
-            border-radius: 6px;
+            background: var(--secondary-color);
+            color: white;
             text-decoration: none;
-            font-weight: 500;
-            margin-bottom: 16px;
+            border-radius: 6px;
+            font-size: 14px;
         }
         .changelog-entry .pr-link:hover {
-            background: #d0e7ff;
+            background: var(--primary-color);
         }
-        .changelog-entry .test-results {
-            background: #f8f9fa;
-            padding: 16px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 13px;
-            white-space: pre-wrap;
-            color: #333;
-        }
-        .changelog-entry .date {
-            font-size: 13px;
-            color: #999;
-            margin-top: 16px;
-        }
-        .no-entries {
+        .empty-state {
             text-align: center;
-            color: #999;
-            padding: 60px;
-            font-size: 18px;
+            padding: 60px 20px;
+            color: var(--text-light);
         }
     </style>
 </head>
@@ -137,54 +98,47 @@
         <h1>🦀 Taskinator - Changelog</h1>
         <nav>
             <a href="/board">Board</a>
-            <a href="/changelog">📋 Changelog</a>
-            <a href="/logout">Logout ({{ user }})</a>
+            <a href="/changelog">Changelog</a>
+            <a href="/logout">Logout</a>
         </nav>
     </div>
-    
+
     <div class="container">
         <div class="search-bar">
-            <form method="GET" action="/changelog">
-                <input type="text" name="search" placeholder="Suche nach Titel oder ID..." value="{{ search or '' }}">
-                <button type="submit">🔍 Suchen</button>
+            <form action="/changelog" method="GET">
+                <input type="text" name="q" placeholder="Search changelog..." value="{{ query or '' }}">
+                <button type="submit">Search</button>
             </form>
         </div>
-        
-        {% if changes %}
-            {% for change in changes %}
+
+        {% if entries %}
+            {% for entry in entries %}
             <div class="changelog-entry">
-                <h2>#{{ change.id }}: {{ change.title }}</h2>
+                <h2>{{ entry.title }}</h2>
                 <div class="meta">
-                    <span>📋 Task #{{ change.task_id }}</span>
-                    {% if change.pr_number %}
-                    <span>PR #{{ change.pr_number }}</span>
+                    <span>📅 {{ entry.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                    <span>📝 Task #{{ entry.task_id }}</span>
+                    {% if entry.user %}
+                    <span>👤 {{ entry.user }}</span>
                     {% endif %}
-                    <span>📅 {{ change.created_at.strftime('%Y-%m-%d %H:%M UTC') }}</span>
                 </div>
-                
-                {% if change.description %}
-                <div class="description">{{ change.description }}</div>
+                {% if entry.description %}
+                <div class="description">{{ entry.description }}</div>
                 {% endif %}
-                
-                {% if change.pr_link %}
-                <a href="{{ change.pr_link }}" target="_blank" class="pr-link">🔗 PR auf GitHub</a>
+                {% if entry.pr_url %}
+                <a href="{{ entry.pr_url }}" class="pr-link" target="_blank" rel="noopener noreferrer">View PR</a>
                 {% endif %}
-                
-                {% if change.test_results %}
-                <div class="test-results">{{ change.test_results }}</div>
-                {% endif %}
-                
-                <div class="date">Erstellt: {{ change.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') }}</div>
             </div>
             {% endfor %}
         {% else %}
-            <div class="no-entries">
-                {% if search %}
-                    Keine Ergebnisse für "{{ search }}"
-                {% else %}
-                    Noch keine Änderungen dokumentiert 🎉
-                {% endif %}
-            </div>
+        <div class="empty-state">
+            <h2>No changelog entries found</h2>
+            {% if query %}
+            <p>Try a different search term</p>
+            {% else %}
+            <p>Changelog entries will appear here</p>
+            {% endif %}
+        </div>
         {% endif %}
     </div>
 </body>
