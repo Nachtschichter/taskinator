@@ -107,8 +107,18 @@ async def lifespan(app: FastAPI):
             if not admin:
                 admin = User(username="admin", password_hash=hash_password(admin_password))
                 db.add(admin)
+                
+                # Create sample tasks for testing
+                sample_tasks = [
+                    Task(title="Test Task 1", description="Sample task for testing", project="Test", status=TaskStatus.TODO),
+                    Task(title="Test Task 2", description="Another sample task", project="Test", status=TaskStatus.DOING),
+                    Task(title="Test Task 3", description="Completed task", project="Test", status=TaskStatus.DONE),
+                ]
+                for task in sample_tasks:
+                    db.add(task)
+                
                 db.commit()
-                print("✅ Admin user created")
+                print("✅ Admin user + sample tasks created")
             else:
                 print("✅ Admin user already exists")
         except Exception as e:
