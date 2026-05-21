@@ -344,12 +344,16 @@ def task_detail(request: Request, tid: int):
             except:
                 return ""
         
+        # Ensure documentation is never None
+        task_doc = task.documentation or ""
+        
         html_content = templates.get_template("task_detail.html").render({
             "request": request,
             "task": task,
             "changelog": changelog_entries,
             "user": get_user(request),
-            "extract_section": extract_section
+            "extract_section": extract_section,
+            "task_doc": task_doc
         })
         return Response(content=html_content, media_type="text/html; charset=utf-8")
     except Exception as e:
