@@ -179,6 +179,56 @@
             padding: 40px;
             color: #888;
         }
+        .documentation-structured {
+            line-height: 1.6;
+            color: #333;
+        }
+        .doc-section {
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .doc-section:last-child {
+            border-bottom: none;
+        }
+        .doc-section h3 {
+            font-size: 16px;
+            color: #667eea;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .doc-content {
+            color: #333;
+            font-size: 14px;
+        }
+        .doc-content p {
+            margin-bottom: 8px;
+        }
+        .doc-content pre {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 13px;
+            border: 1px solid #e0e0e0;
+        }
+        .doc-content code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+        .doc-content ul, .doc-content ol {
+            margin-left: 20px;
+            margin-bottom: 8px;
+        }
+        .doc-content li {
+            margin-bottom: 4px;
+        }
+        .text-muted {
+            color: #888;
+            font-style: italic;
+        }
         @media (max-width: 768px) {
             .grid { grid-template-columns: 1fr; }
         }
@@ -263,15 +313,91 @@
             <div>
                 <div class="card">
                     <h2>📄 Dokumentation</h2>
-                    {% if task.documentation %}
-                    <div class="documentation-content" style="line-height: 1.6; color: #333;">
-                        {{ task.documentation | safe }}
+                    <div class="documentation-structured">
+                        <!-- 1. Titel -->
+                        <div class="doc-section">
+                            <h3>📋 Titel</h3>
+                            <div class="doc-content">
+                                {% if task.documentation and ('## Titel' in task.documentation or '### Titel' in task.documentation) %}
+                                    {{ extract_section(task.documentation, 'Titel') | safe }}
+                                {% else %}
+                                    <p class="text-muted">{{ task.title }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- 2. Problembeschreibung -->
+                        <div class="doc-section">
+                            <h3>⚠️ Problembeschreibung</h3>
+                            <div class="doc-content">
+                                {% if task.documentation %}
+                                    {{ extract_section(task.documentation, 'Problembeschreibung') | safe }}
+                                {% else %}
+                                    <p class="text-muted">{{ task.description or 'Keine Problembeschreibung vorhanden.' }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- 3. Lösungsbeschreibung -->
+                        <div class="doc-section">
+                            <h3>✅ Lösungsbeschreibung</h3>
+                            <div class="doc-content">
+                                {% if task.documentation %}
+                                    {{ extract_section(task.documentation, 'Lösungsbeschreibung') | safe }}
+                                {% else %}
+                                    <p class="text-muted">Keine Lösungsbeschreibung vorhanden.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- 4. Code Review Protokoll -->
+                        <div class="doc-section">
+                            <h3>🔍 Code Review Protokoll</h3>
+                            <div class="doc-content">
+                                {% if task.documentation %}
+                                    {{ extract_section(task.documentation, 'Code Review') | safe }}
+                                {% else %}
+                                    <p class="text-muted">Kein Code Review Protokoll vorhanden.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- 5. Testprotokoll -->
+                        <div class="doc-section">
+                            <h3>🧪 Testprotokoll</h3>
+                            <div class="doc-content">
+                                {% if task.documentation %}
+                                    {{ extract_section(task.documentation, 'Testprotokoll') | safe }}
+                                {% else %}
+                                    <p class="text-muted">Kein Testprotokoll vorhanden.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- 6. PR Informationen -->
+                        <div class="doc-section">
+                            <h3>🔗 PR Informationen</h3>
+                            <div class="doc-content">
+                                {% if task.documentation %}
+                                    {{ extract_section(task.documentation, 'PR') | safe }}
+                                {% else %}
+                                    <p class="text-muted">Keine PR Informationen vorhanden.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- 7. Deployment Datum -->
+                        <div class="doc-section">
+                            <h3>🚀 Deployment</h3>
+                            <div class="doc-content">
+                                {% if task.documentation %}
+                                    {{ extract_section(task.documentation, 'Deployment') | safe }}
+                                {% else %}
+                                    <p class="text-muted">Keine Deployment Informationen vorhanden.</p>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                    {% else %}
-                    <div class="empty-state">
-                        <p>Keine Dokumentation vorhanden.</p>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>

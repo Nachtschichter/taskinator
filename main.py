@@ -1,4 +1,4 @@
-"""Taskinator - Simple Kanban Board"""
+from contextlib import asynccontextmanager
 import os
 import json
 from fastapi import FastAPI, Request, Depends, Form
@@ -14,7 +14,7 @@ from jose import JWTError, jwt
 
 SECRET_KEY = os.getenv("SECRET_KEY", "taskinator-secret")
 ALGORITHM = "HS256"
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:////app/data/taskinator.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data/taskinator.db")
 Base = declarative_base()
 
 class Priority(enum.Enum):
@@ -92,7 +92,52 @@ def get_user(request):
         return payload.get("sub")
     except: return None
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize database
+    Base.metadata.create_all(bind=engine)
+    print("✅ Database initialized")
+    
+    # Create admin user if ADMIN_PASSWORD is set
+    admin_password = os.getenv("ADMIN_PASSWORD")
+    if admin_password:
+        db = SessionLocal()
+        try:
+            admin = db.query(User).filter(User.username == "admin").first()
+            if not admin:
+                admin = User(username="admin", password_hash=hash_password(admin_password))
+                db.add(admin)
+                db.commit()
+                print("✅ Admin user created")
+            else:
+                print("✅ Admin user already exists")
+            
+            # Create sample tasks if none exist (for E2E tests)
+            task_count = db.query(Task).count()
+            if task_count == 0:
+                sample_tasks = [
+                    Task(title="Test Task 1", description="Sample task for testing", project="Test", status=TaskStatus.TODO),
+                    Task(title="Test Task 2", description="Another sample task", project="Test", status=TaskStatus.DOING),
+                    Task(title="Test Task 3", description="Completed task", project="Test", status=TaskStatus.DONE),
+                ]
+                for task in sample_tasks:
+                    db.add(task)
+                db.commit()
+                print("✅ Sample tasks created")
+            else:
+                print(f"✅ {task_count} tasks already exist")
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            db.rollback()
+        finally:
+            db.close()
+    else:
+        print("⚠️ No ADMIN_PASSWORD set")
+    
+    yield
+    # Shutdown (optional cleanup)
+
+app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -106,11 +151,7 @@ async def add_charset_header(request: Request, call_next):
         response.headers["content-type"] = "text/html; charset=utf-8"
     return response
 
-@app.on_event("startup")
-def startup():
-    # Initialize database tables (single operation)
-    Base.metadata.create_all(bind=engine)
-    print("✅ Database initialized")
+
 
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request):
@@ -276,14 +317,48 @@ def admin_delete_project(request: Request, pid: int):
 def task_detail(request: Request, tid: int):
     if not get_user(request): return RedirectResponse("/login")
     db = SessionLocal()
-    task = db.query(Task).filter(Task.id == tid).first()
-    if not task:
+    try:
+        task = db.query(Task).filter(Task.id == tid).first()
+        if not task:
+            db.close()
+            return Response(content="Task not found", status_code=404, media_type="text/plain")
+        changelog_entries = db.query(ChangeLog).filter(ChangeLog.task_id == tid).order_by(ChangeLog.created_at.desc()).all()
         db.close()
-        return Response(content="Task not found", status_code=404, media_type="text/plain")
-    changelog_entries = db.query(ChangeLog).filter(ChangeLog.task_id == tid).order_by(ChangeLog.created_at.desc()).all()
-    db.close()
-    html_content = templates.get_template("task_detail.html").render({"request": request, "task": task, "changelog": changelog_entries, "user": get_user(request)})
-    return Response(content=html_content, media_type="text/html; charset=utf-8")
+        
+        # Safe helper function to extract sections from documentation
+        def extract_section(doc: str, section_name: str) -> str:
+            try:
+                if not doc:
+                    return ""
+                import re
+                pattern = rf'(?:##|###)\s*{re.escape(section_name)}\s*\n(.*?)(?=\n##|\n###|$)'
+                match = re.search(pattern, doc, re.DOTALL | re.IGNORECASE)
+                if match:
+                    content = match.group(1).strip()
+                    content = re.sub(r'^-\s+(.*)$', r'<li>\1</li>', content, flags=re.MULTILINE)
+                    content = re.sub(r'\*\*(.*)\*\*', r'<strong>\1</strong>', content)
+                    content = re.sub(r'`([^`]+)`', r'<code>\1</code>', content)
+                    content = re.sub(r'\n', r'<br>', content)
+                    return f'<div class="section-content">{content}</div>'
+                return ""
+            except:
+                return ""
+        
+        # Ensure documentation is never None
+        if task.documentation is None:
+            task.documentation = ""
+        
+        html_content = templates.get_template("task_detail.html").render({
+            "request": request,
+            "task": task,
+            "changelog": changelog_entries,
+            "user": get_user(request),
+            "extract_section": extract_section
+        })
+        return Response(content=html_content, media_type="text/html; charset=utf-8")
+    except Exception as e:
+        db.close()
+        return Response(content=f"Error: {str(e)}", status_code=500, media_type="text/plain")
 
 
 # Task Sync API - Für Agent Visibility
