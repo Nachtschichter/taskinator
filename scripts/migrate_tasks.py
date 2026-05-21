@@ -69,7 +69,7 @@ def generate_documentation(task: Task, changelogs: list) -> str:
     doc.append("\n\n## Deployment")
     doc.append(f"\n**Datum:** {datetime.now().strftime('%d.%m.%Y %H:%M')} UTC")
     doc.append(f"\n**Status:** {'✅ Deployed' if task.status == TaskStatus.DONE else '⏳ Ausstehend'}")
-    doc.append(f"\n**Umgebung:** Production (91.99.5.26)")
+    doc.append(f"\n**Umgebung:** Production")
     
     return "\n".join(doc)
 
@@ -78,34 +78,44 @@ def migrate_tasks():
     """Migriert alle Tasks ohne Dokumentation."""
     db = SessionLocal()
     
-    # Finde alle Tasks ohne Dokumentation
-    tasks_without_doc = db.query(Task).filter(
-        (Task.documentation == None) | (Task.documentation == '')
-    ).order_by(Task.id).all()
-    
-    print(f"📋 Gefundene Tasks ohne Dokumentation: {len(tasks_without_doc)}")
-    
-    migrated = 0
-    for task in tasks_without_doc:
-        # Hole Changelog-Einträge
-        changelogs = db.query(ChangeLog).filter(
-            ChangeLog.task_id == task.id
-        ).order_by(ChangeLog.created_at.desc()).all()
+    try:
+        # Finde alle Tasks ohne Dokumentation
+        tasks_without_doc = db.query(Task).filter(
+            (Task.documentation == None) | (Task.documentation == '')
+        ).order_by(Task.id).all()
         
-        # Generiere Dokumentation
-        doc = generate_documentation(task, changelogs)
+        print(f"📋 Gefundene Tasks ohne Dokumentation: {len(tasks_without_doc)}")
         
-        # Speichere Dokumentation
-        task.documentation = doc
-        migrated += 1
+        migrated = 0
+        for task in tasks_without_doc:
+            try:
+                # Hole Changelog-Einträge
+                changelogs = db.query(ChangeLog).filter(
+                    ChangeLog.task_id == task.id
+                ).order_by(ChangeLog.created_at.desc()).all()
+                
+                # Generiere Dokumentation
+                doc = generate_documentation(task, changelogs)
+                
+                # Speichere Dokumentation
+                task.documentation = doc
+                migrated += 1
+                
+                print(f"  ✅ Task #{task.id}: {task.title[:50]}...")
+            except Exception as e:
+                print(f"  ❌ Task #{task.id} failed: {e}")
+                continue
         
-        print(f"  ✅ Task #{task.id}: {task.title[:50]}...")
-    
-    db.commit()
-    db.close()
-    
-    print(f"\n🎉 Migration abgeschlossen: {migrated} Tasks migriert")
-    return migrated
+        db.commit()
+        print(f"\n🎉 Migration abgeschlossen: {migrated} Tasks migriert")
+        return migrated
+        
+    except Exception as e:
+        print(f"❌ Migration failed: {e}")
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":
