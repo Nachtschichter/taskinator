@@ -286,7 +286,7 @@
  </div>
  <div class="section-content">
  {% if task.documentation and extract_section(task.documentation, 'Problembeschreibung') %}
- {{ extract_section(task.documentation, 'Problembeschreibung') | safe }}
+ <div>{{ extract_section(task.documentation, 'Problembeschreibung') }}</div>
  {% else %}
  <p><em>Keine Problembeschreibung vorhanden.</em></p>
  {% endif %}
@@ -300,7 +300,7 @@
  </div>
  <div class="section-content">
  {% if task.documentation and extract_section(task.documentation, 'Lösungsbeschreibung') %}
- {{ extract_section(task.documentation, 'Lösungsbeschreibung') | safe }}
+ <div>{{ extract_section(task.documentation, 'Lösungsbeschreibung') }}</div>
  {% else %}
  <p><em>Keine Lösungsbeschreibung vorhanden.</em></p>
  {% endif %}
@@ -314,7 +314,7 @@
  </div>
  <div class="section-content">
  {% if task.documentation and extract_section(task.documentation, 'Code Review') %}
- {{ extract_section(task.documentation, 'Code Review') | safe }}
+ <div>{{ extract_section(task.documentation, 'Code Review') }}</div>
  {% else %}
  <p><em>Kein Code Review Protokoll vorhanden.</em></p>
  {% endif %}
@@ -328,7 +328,7 @@
  </div>
  <div class="section-content">
  {% if task.documentation and extract_section(task.documentation, 'Testprotokoll') %}
- {{ extract_section(task.documentation, 'Testprotokoll') | safe }}
+ <div>{{ extract_section(task.documentation, 'Testprotokoll') }}</div>
  {% else %}
  <p><em>Kein Testprotokoll vorhanden.</em></p>
  {% endif %}
@@ -342,7 +342,7 @@
  </div>
  <div class="section-content">
  {% if task.documentation and extract_section(task.documentation, 'PR') %}
- {{ extract_section(task.documentation, 'PR') | safe }}
+ <div>{{ extract_section(task.documentation, 'PR') }}</div>
  {% else %}
  <p><em>Keine PR Informationen vorhanden.</em></p>
  {% endif %}
@@ -356,7 +356,7 @@
  </div>
  <div class="section-content">
  {% if task.documentation and extract_section(task.documentation, 'Deployment') %}
- {{ extract_section(task.documentation, 'Deployment') | safe }}
+ <div>{{ extract_section(task.documentation, 'Deployment') }}</div>
  {% else %}
  <p><em>Keine Deployment Informationen vorhanden.</em></p>
  {% endif %}
