@@ -318,7 +318,7 @@
                         <div class="doc-section">
                             <h3>📋 Titel</h3>
                             <div class="doc-content">
-                                {% if task.documentation and '## Titel' in task.documentation or '### Titel' in task.documentation %}
+                                {% if task.documentation and ('## Titel' in task.documentation or '### Titel' in task.documentation) %}
                                     {{ extract_section(task.documentation, 'Titel') | safe }}
                                 {% else %}
                                     <p class="text-muted">{{ task.title }}</p>
