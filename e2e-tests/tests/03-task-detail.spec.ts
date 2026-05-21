@@ -22,7 +22,7 @@ test.describe('Task Detail Page', () => {
     await page.goto('/tasks/1');
     await page.waitForLoadState('networkidle');
     
-    await expect(page.locator('.badge')).toBeVisible();
+    await expect(page.locator('.task-meta .badge')).toBeVisible();
     await expect(page.locator('.detail-label:has-text("Beschreibung")')).toBeVisible();
     await expect(page.locator('.detail-label:has-text("Erstellt")')).toBeVisible();
   });
@@ -30,7 +30,7 @@ test.describe('Task Detail Page', () => {
   test('Changelog section exists', async ({ page }) => {
     await page.goto('/tasks/1');
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.card:has-text("Changelog")')).toBeVisible();
+    await expect(page.locator('h2:has-text("📋 Changelog")')).toBeVisible();
   });
   
   test('Documentation is read-only', async ({ page }) => {
