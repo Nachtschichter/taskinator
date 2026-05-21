@@ -4,32 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taskinator - Kanban Board</title>
+    <link rel="stylesheet" href="/static/style.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f7fa;
-            min-height: 100vh;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 { font-size: 24px; }
-        .header nav a {
-            color: white;
-            text-decoration: none;
-            margin-left: 20px;
-            padding: 8px 16px;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.2);
-            transition: background 0.3s;
-        }
-        .header nav a:hover { background: rgba(255,255,255,0.3); }
+        /* Board-specific styles */
         .board {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -86,87 +63,48 @@
             flex-wrap: wrap;
             margin-bottom: 8px;
         }
-        .badge {
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .badge.priority-hoch { background: #fee; color: #c00; }
-        .badge.priority-mittel { background: #fff3cd; color: #856404; }
-        .badge.priority-niedrig { background: #d4edda; color: #155724; }
-        .badge.category-feature { background: #e7f3ff; color: #0066cc; }
-        .badge.category-fix { background: #fff8e1; color: #ff8f00; }
-        .badge.category-hotfix { background: #ffebee; color: #c62828; }
-        .task-card .project {
-            font-size: 12px;
+        .task-card .description {
+            font-size: 13px;
             color: #666;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
         .task-card .actions {
             display: flex;
             gap: 8px;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #eee;
         }
-        .task-card .actions button {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        .btn-small {
+            padding: 4px 12px;
             font-size: 12px;
-            transition: background 0.2s;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
         }
-        .btn-move { background: #667eea; color: white; }
-        .btn-move:hover { background: #5568d3; }
-        .btn-delete { background: #fee; color: #c00; }
-        .btn-delete:hover { background: #fdd; }
-        .btn-docs { background: #e7f3ff; color: #0066cc; }
-        .btn-docs:hover { background: #d0e7ff; }
-        .add-task-form {
-            background: white;
+        .btn-view {
+            background: #667eea;
+            color: white;
+        }
+        .btn-edit {
+            background: #f39c12;
+            color: white;
+        }
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+        .add-task-card {
+            background: rgba(255,255,255,0.5);
+            border: 2px dashed #667eea;
             border-radius: 8px;
             padding: 16px;
-            margin-bottom: 12px;
-        }
-        .add-task-form input,
-        .add-task-form select,
-        .add-task-form textarea {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-        .add-task-form button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            text-align: center;
             cursor: pointer;
-            font-size: 13px;
+            transition: all 0.2s;
         }
-        .docs-form textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 13px;
-            margin-bottom: 8px;
-            min-height: 80px;
-        }
-        .docs-form button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
+        .add-task-card:hover {
+            background: rgba(255,255,255,0.8);
+            transform: translateY(-2px);
         }
         .modal {
             display: none;
@@ -177,353 +115,269 @@
             height: 100%;
             background: rgba(0,0,0,0.5);
             z-index: 1000;
-            align-items: center;
             justify-content: center;
+            align-items: center;
         }
-        .modal.active { display: flex; }
+        .modal.active {
+            display: flex;
+        }
         .modal-content {
             background: white;
             padding: 30px;
             border-radius: 12px;
-            max-width: 500px;
             width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 500px;
         }
-        .modal-content h2 {
+        .form-group {
             margin-bottom: 20px;
-            color: #333;
         }
-        .modal-content label {
+        .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
+            font-weight: 600;
+            color: #333;
         }
-        .modal-content input,
-        .modal-content select,
-        .modal-content textarea {
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 10px;
-            margin-bottom: 16px;
-            border: 1px solid #ddd;
+            border: 2px solid #e0e0e0;
             border-radius: 6px;
             font-size: 14px;
         }
-        .modal-content button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
         }
-        .modal-close {
-            float: right;
-            cursor: pointer;
-            font-size: 24px;
-            color: #999;
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
         }
-        .modal-close:hover { color: #333; }
+        @media (max-width: 1024px) {
+            .board {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            .board {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>🦀 Taskinator</h1>
+        <h1>🦀 Taskinator - Kanban Board</h1>
         <nav>
             <a href="/board">Board</a>
-            <a href="/changelog">📋 Changelog</a>
-            <a href="/logout">Logout ({{ user }})</a>
+            <a href="/changelog">Changelog</a>
+            <a href="/logout">Logout</a>
         </nav>
     </div>
-    
+
     <div class="board">
-        <!-- BACKLOG -->
         <div class="column" id="backlog">
             <div class="column-header">
-                📋 Backlog
-                <span class="count">{{ columns.backlog|length }}</span>
+                <span>📋 Backlog</span>
+                <span class="count">{{ counts.backlog }}</span>
             </div>
-            
-            <div class="add-task-form">
-                <form method="POST" action="/tasks/create">
-                    <input type="text" name="title" placeholder="Task Titel" maxlength="256" required>
-                    <textarea name="description" placeholder="Beschreibung" maxlength="1024" rows="2"></textarea>
-                    <select name="priority">
-                        <option value="niedrig">Niedrig</option>
-                        <option value="mittel" selected>Mittel</option>
-                        <option value="hoch">Hoch</option>
+            {% for task in tasks %}
+            {% if task.status.value == 'backlog' %}
+            <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
+                <h3>{{ task.title }}</h3>
+                <div class="meta">
+                    <span class="badge priority-{{ task.priority.value }}">{{ task.priority.value }}</span>
+                    <span class="badge category-{{ task.category.value }}">{{ task.category.value }}</span>
+                </div>
+                {% if task.description %}
+                <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
+                {% endif %}
+                <div class="actions">
+                    <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
+                    <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+            <div class="add-task-card" onclick="openModal()">
+                + Add Task
+            </div>
+        </div>
+
+        <div class="column" id="todo">
+            <div class="column-header">
+                <span>✅ To Do</span>
+                <span class="count">{{ counts.todo }}</span>
+            </div>
+            {% for task in tasks %}
+            {% if task.status.value == 'todo' %}
+            <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
+                <h3>{{ task.title }}</h3>
+                <div class="meta">
+                    <span class="badge priority-{{ task.priority.value }}">{{ task.priority.value }}</span>
+                    <span class="badge category-{{ task.category.value }}">{{ task.category.value }}</span>
+                </div>
+                {% if task.description %}
+                <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
+                {% endif %}
+                <div class="actions">
+                    <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
+                    <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="column" id="doing">
+            <div class="column-header">
+                <span>🔄 Doing</span>
+                <span class="count">{{ counts.doing }}</span>
+            </div>
+            {% for task in tasks %}
+            {% if task.status.value == 'doing' %}
+            <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
+                <h3>{{ task.title }}</h3>
+                <div class="meta">
+                    <span class="badge priority-{{ task.priority.value }}">{{ task.priority.value }}</span>
+                    <span class="badge category-{{ task.category.value }}">{{ task.category.value }}</span>
+                </div>
+                {% if task.description %}
+                <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
+                {% endif %}
+                <div class="actions">
+                    <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
+                    <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="column" id="done">
+            <div class="column-header">
+                <span>✅ Done</span>
+                <span class="count">{{ counts.done }}</span>
+            </div>
+            {% for task in tasks %}
+            {% if task.status.value == 'done' %}
+            <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
+                <h3>{{ task.title }}</h3>
+                <div class="meta">
+                    <span class="badge priority-{{ task.priority.value }}">{{ task.priority.value }}</span>
+                    <span class="badge category-{{ task.category.value }}">{{ task.category.value }}</span>
+                </div>
+                {% if task.description %}
+                <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
+                {% endif %}
+                <div class="actions">
+                    <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
+                    <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Create Task Modal -->
+    <div class="modal" id="createTaskModal">
+        <div class="modal-content">
+            <h2>Create New Task</h2>
+            <form action="/tasks/create" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required maxlength="256">
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" maxlength="1024"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="priority">Priority</label>
+                    <select id="priority" name="priority">
+                        <option value="niedrig">Low</option>
+                        <option value="mittel" selected>Medium</option>
+                        <option value="hoch">High</option>
                     </select>
-                    <select name="category">
+                </div>
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category">
                         <option value="feature">Feature</option>
                         <option value="fix">Fix</option>
                         <option value="hotfix">Hotfix</option>
                     </select>
-                    <select name="project">
-                        <option value="">Kein Projekt</option>
-                        {% for p in projects %}
-                        <option value="{{ p.name }}">{{ p.name }}</option>
-                        {% endfor %}
+                </div>
+                <div class="form-group">
+                    <label for="project">Project</label>
+                    <select id="project" name="project">
+                        <option value="Taskinator" selected>Taskinator</option>
+                        <option value="tradershome">tradershome</option>
+                        <option value="OpenTradingClaw">OpenTradingClaw</option>
                     </select>
-                    <button type="submit">➕ Add Task</button>
-                </form>
-            </div>
-            
-            {% for task in columns.backlog %}
-            <div class="task-card" data-id="{{ task.id }}">
-                <h3>{{ task.title }}</h3>
-                <div class="meta">
-                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
-                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
                 </div>
-                {% if task.project %}
-                <div class="project">📁 {{ task.project }}</div>
-                {% endif %}
-                {% if task.description %}
-                <div style="font-size:12px;color:#666;margin:8px 0;line-height:1.4;">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
-                {% endif %}
-                <div class="actions">
-                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
-                        <input type="hidden" name="direction" value="forward">
-                        <button type="submit" class="btn-move">→</button>
-                    </form>
-                    <button class="btn-docs edit-btn" 
-                        data-id="{{ task.id }}" 
-                        data-title="{{ task.title | e }}" 
-                        data-description="{{ task.description | e }}" 
-                        data-priority="{{ task.priority }}" 
-                        data-category="{{ task.category }}" 
-                        data-project="{{ task.project or '' }}">✏️ Edit</button>
-                    <a href="/tasks/{{ task.id }}" class="btn-docs" style="text-decoration:none;display:inline-block;padding:8px 12px;background:#667eea;color:white;border-radius:6px;font-size:12px;font-weight:600;transition:all 0.3s;">📄 Details</a>
-                    <form method="POST" action="/tasks/{{ task.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete task?')">
-                        <button type="submit" class="btn-delete">🗑️</button>
-                    </form>
+                <div class="modal-actions">
+                    <button type="button" class="btn" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Task</button>
                 </div>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <!-- TODO -->
-        <div class="column" id="todo">
-            <div class="column-header">
-                ✅ To Do
-                <span class="count">{{ columns.todo|length }}</span>
-            </div>
-            
-            {% for task in columns.todo %}
-            <div class="task-card" data-id="{{ task.id }}">
-                <h3>{{ task.title }}</h3>
-                <div class="meta">
-                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
-                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
-                </div>
-                {% if task.project %}
-                <div class="project">📁 {{ task.project }}</div>
-                {% endif %}
-                {% if task.description %}
-                <div style="font-size:12px;color:#666;margin:8px 0;line-height:1.4;">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
-                {% endif %}
-                <div class="actions">
-                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
-                        <input type="hidden" name="direction" value="backward">
-                        <button type="submit" class="btn-move">←</button>
-                    </form>
-                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
-                        <input type="hidden" name="direction" value="forward">
-                        <button type="submit" class="btn-move">→</button>
-                    </form>
-                    <button class="btn-docs" onclick="openEditModal({{ task.id }}, '{{ task.title }}', '{{ task.description or '' }}', '{{ task.priority }}', '{{ task.category }}', '{{ task.project or '' }}')">✏️ Edit</button>
-                    <a href="/tasks/{{ task.id }}" class="btn-docs" style="text-decoration:none;display:inline-block;padding:8px 12px;background:#667eea;color:white;border-radius:6px;font-size:12px;font-weight:600;transition:all 0.3s;">📄 Details</a>
-                    <form method="POST" action="/tasks/{{ task.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete task?')">
-                        <button type="submit" class="btn-delete">🗑️</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <!-- DOING -->
-        <div class="column" id="doing">
-            <div class="column-header">
-                🚀 Doing
-                <span class="count">{{ columns.doing|length }}</span>
-            </div>
-            
-            {% for task in columns.doing %}
-            <div class="task-card" data-id="{{ task.id }}">
-                <h3>{{ task.title }}</h3>
-                <div class="meta">
-                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
-                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
-                </div>
-                {% if task.project %}
-                <div class="project">📁 {{ task.project }}</div>
-                {% endif %}
-                {% if task.description %}
-                <div style="font-size:12px;color:#666;margin:8px 0;line-height:1.4;">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
-                {% endif %}
-                <div class="actions">
-                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
-                        <input type="hidden" name="direction" value="backward">
-                        <button type="submit" class="btn-move">←</button>
-                    </form>
-                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
-                        <input type="hidden" name="direction" value="forward">
-                        <button type="submit" class="btn-move">→</button>
-                    </form>
-                    <button class="btn-docs" onclick="openEditModal({{ task.id }}, '{{ task.title }}', '{{ task.description or '' }}', '{{ task.priority }}', '{{ task.category }}', '{{ task.project or '' }}')">✏️ Edit</button>
-                    <a href="/tasks/{{ task.id }}" class="btn-docs" style="text-decoration:none;display:inline-block;padding:8px 12px;background:#667eea;color:white;border-radius:6px;font-size:12px;font-weight:600;transition:all 0.3s;">📄 Details</a>
-                    <form method="POST" action="/tasks/{{ task.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete task?')">
-                        <button type="submit" class="btn-delete">🗑️</button>
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <!-- DONE -->
-        <div class="column" id="done">
-            <div class="column-header">
-                ✅ Done
-                <span class="count">{{ columns.done|length }}</span>
-            </div>
-            
-            {% for task in columns.done %}
-            <div class="task-card" data-id="{{ task.id }}">
-                <h3>{{ task.title }}</h3>
-                <div class="meta">
-                    <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
-                    <span class="badge category-{{ task.category }}">{{ task.category }}</span>
-                </div>
-                {% if task.project %}
-                <div class="project">📁 {{ task.project }}</div>
-                {% endif %}
-                {% if task.description %}
-                <div style="font-size:12px;color:#666;margin:8px 0;line-height:1.4;">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
-                {% endif %}
-                {% if task.documentation %}
-                <div style="font-size:12px;color:#666;margin-top:8px;">
-                    📝 <a href="/changelog?search={{ task.id }}" target="_blank" style="color:#0066cc;text-decoration:none;">Changelog ansehen</a>
-                </div>
-                {% endif %}
-                <div class="actions">
-                    <form method="POST" action="/tasks/{{ task.id }}/move" style="display:inline;">
-                        <input type="hidden" name="direction" value="backward">
-                        <button type="submit" class="btn-move">←</button>
-                    </form>
-                    <form method="POST" action="/tasks/{{ task.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete task?')">
-                        <button type="submit" class="btn-delete">🗑️</button>
-                    </form>
-                    <a href="/tasks/{{ task.id }}" class="btn-docs" style="text-decoration:none;display:inline-block;padding:8px 12px;background:#667eea;color:white;border-radius:6px;font-size:12px;font-weight:600;transition:all 0.3s;">📄 Details</a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    
-    <!-- Documentation Modal -->
-    <div class="modal" id="docsModal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeDocsModal()">&times;</span>
-            <h2>📝 Dokumentation</h2>
-            <form class="docs-form" method="POST" action="/tasks/update" id="docsForm">
-                <input type="hidden" name="task_id" id="docsTaskId">
-                <label>Dokumentation / PR-Link / Test-Ergebnisse</label>
-                <textarea name="documentation" id="docsContent" rows="6" placeholder="Dokumentation, PR-Nummer, PR-Link, Test-Ergebnisse..."></textarea>
-                <button type="submit">💾 Speichern</button>
             </form>
         </div>
     </div>
-    
-    <!-- Edit Task Modal -->
-    <div class="modal" id="editModal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeEditModal()">&times;</span>
-            <h2>✏️ Task bearbeiten</h2>
-            <form class="docs-form" method="POST" action="/tasks/update-details" id="editForm">
-                <input type="hidden" name="task_id" id="editTaskId">
-                <label>Titel</label>
-                <input type="text" name="title" id="editTitle" maxlength="256" required>
-                <label>Beschreibung</label>
-                <textarea name="description" id="editDescription" rows="3" maxlength="1024"></textarea>
-                <label>Priorität</label>
-                <select name="priority" id="editPriority">
-                    <option value="niedrig">Niedrig</option>
-                    <option value="mittel">Mittel</option>
-                    <option value="hoch">Hoch</option>
-                </select>
-                <label>Kategorie</label>
-                <select name="category" id="editCategory">
-                    <option value="feature">Feature</option>
-                    <option value="fix">Fix</option>
-                    <option value="hotfix">Hotfix</option>
-                </select>
-                <label>Projekt</label>
-                <select name="project" id="editProject">
-                    <option value="">Kein Projekt</option>
-                    {% for p in projects %}
-                    <option value="{{ p.name }}">{{ p.name }}</option>
-                    {% endfor %}
-                </select>
-                <button type="submit">💾 Speichern</button>
-            </form>
-        </div>
-    </div>
-    
+
     <script>
-        function openDocsModal(taskId, content) {
-            document.getElementById('docsTaskId').value = taskId;
-            document.getElementById('docsContent').value = content || '';
-            document.getElementById('docsModal').classList.add('active');
+        function openModal() {
+            document.getElementById('createTaskModal').classList.add('active');
+        }
+        function closeModal() {
+            document.getElementById('createTaskModal').classList.remove('active');
         }
         
-        function closeDocsModal() {
-            document.getElementById('docsModal').classList.remove('active');
-        }
-        
-        function openEditModal(taskId, title, description, priority, category, project) {
-            document.getElementById('editTaskId').value = taskId;
-            document.getElementById('editTitle').value = title || '';
-            document.getElementById('editDescription').value = description || '';
-            document.getElementById('editPriority').value = priority || 'mittel';
-            document.getElementById('editCategory').value = category || 'feature';
-            // Set project dropdown
-            const projectSelect = document.getElementById('editProject');
-            if (project && project.trim()) {
-                projectSelect.value = project;
-            } else {
-                projectSelect.value = '';
-            }
-            document.getElementById('editModal').classList.add('active');
-        }
-        
-        function closeEditModal() {
-            document.getElementById('editModal').classList.remove('active');
-        }
-        
-        // Edit button click handler (uses data attributes to avoid quote escaping issues)
-        document.querySelectorAll('.edit-btn').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                openEditModal(
-                    this.getAttribute('data-id'),
-                    this.getAttribute('data-title'),
-                    this.getAttribute('data-description'),
-                    this.getAttribute('data-priority'),
-                    this.getAttribute('data-category'),
-                    this.getAttribute('data-project')
-                );
-            });
+        // Drag and Drop
+        document.querySelectorAll('.task-card[draggable]').forEach(card => {
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
         });
         
-        // Close modals on outside click
-        document.getElementById('docsModal').addEventListener('click', function(e) {
-            if (e.target === this) closeDocsModal();
+        document.querySelectorAll('.column').forEach(column => {
+            column.addEventListener('dragover', handleDragOver);
+            column.addEventListener('drop', handleDrop);
         });
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) closeEditModal();
-        });
+        
+        let draggedTask = null;
+        
+        function handleDragStart(e) {
+            draggedTask = this;
+            this.style.opacity = '0.5';
+        }
+        
+        function handleDragEnd(e) {
+            this.style.opacity = '1';
+            draggedTask = null;
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            const column = this;
+            const taskId = draggedTask.dataset.taskId;
+            const newStatus = column.id;
+            
+            // Move task via form submission
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/tasks/${taskId}/move`;
+            form.innerHTML = `<input type="hidden" name="status" value="${newStatus}">`;
+            document.body.appendChild(form);
+            form.submit();
+        }
     </script>
 </body>
 </html>
