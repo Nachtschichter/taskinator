@@ -107,8 +107,14 @@ async def lifespan(app: FastAPI):
             if not admin:
                 admin = User(username="admin", password_hash=hash_password(admin_password))
                 db.add(admin)
-                
-                # Create sample tasks for testing
+                db.commit()
+                print("✅ Admin user created")
+            else:
+                print("✅ Admin user already exists")
+            
+            # Create sample tasks if none exist (for E2E tests)
+            task_count = db.query(Task).count()
+            if task_count == 0:
                 sample_tasks = [
                     Task(title="Test Task 1", description="Sample task for testing", project="Test", status=TaskStatus.TODO),
                     Task(title="Test Task 2", description="Another sample task", project="Test", status=TaskStatus.DOING),
@@ -116,18 +122,17 @@ async def lifespan(app: FastAPI):
                 ]
                 for task in sample_tasks:
                     db.add(task)
-                
                 db.commit()
-                print("✅ Admin user + sample tasks created")
+                print("✅ Sample tasks created")
             else:
-                print("✅ Admin user already exists")
+                print(f"✅ {task_count} tasks already exist")
         except Exception as e:
-            print(f"❌ Error creating admin user: {e}")
+            print(f"❌ Error: {e}")
             db.rollback()
         finally:
             db.close()
     else:
-        print("⚠️ No ADMIN_PASSWORD set - no admin user created")
+        print("⚠️ No ADMIN_PASSWORD set")
     
     yield
     # Shutdown (optional cleanup)
