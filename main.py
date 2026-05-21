@@ -97,6 +97,28 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize database
     Base.metadata.create_all(bind=engine)
     print("✅ Database initialized")
+    
+    # Create admin user if ADMIN_PASSWORD is set
+    admin_password = os.getenv("ADMIN_PASSWORD")
+    if admin_password:
+        db = SessionLocal()
+        try:
+            admin = db.query(User).filter(User.username == "admin").first()
+            if not admin:
+                admin = User(username="admin", password_hash=hash_password(admin_password))
+                db.add(admin)
+                db.commit()
+                print("✅ Admin user created")
+            else:
+                print("✅ Admin user already exists")
+        except Exception as e:
+            print(f"❌ Error creating admin user: {e}")
+            db.rollback()
+        finally:
+            db.close()
+    else:
+        print("⚠️ No ADMIN_PASSWORD set - no admin user created")
+    
     yield
     # Shutdown (optional cleanup)
 
