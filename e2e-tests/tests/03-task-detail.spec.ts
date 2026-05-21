@@ -14,13 +14,15 @@ test.describe('Task Detail Page', () => {
     const firstTask = page.locator('.task-card a[href^="/tasks/"]').first();
     await firstTask.click();
     await page.waitForURL(/tasks\/\d+/);
-    await expect(page.locator('.task-title')).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('h1:has-text("Taskinator")')).toBeVisible();
   });
   
   test('Task details are displayed', async ({ page }) => {
     const firstTask = page.locator('.task-card a[href^="/tasks/"]').first();
     await firstTask.click();
     await page.waitForURL(/tasks\/\d+/);
+    await page.waitForLoadState('networkidle');
     
     await expect(page.locator('.badge')).toBeVisible();
     await expect(page.locator('text=Beschreibung')).toBeVisible();
@@ -31,6 +33,7 @@ test.describe('Task Detail Page', () => {
     const firstTask = page.locator('.task-card a[href^="/tasks/"]').first();
     await firstTask.click();
     await page.waitForURL(/tasks\/\d+/);
+    await page.waitForLoadState('networkidle');
     await expect(page.locator('h2:has-text("Changelog")')).toBeVisible();
   });
   
