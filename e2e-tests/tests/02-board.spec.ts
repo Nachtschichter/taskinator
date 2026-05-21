@@ -12,10 +12,10 @@ test.describe('Kanban Board', () => {
   
   test('Board page loads', async ({ page }) => {
     await expect(page).toHaveURL(/board/);
-    await expect(page.locator('text=BACKLOG')).toBeVisible();
-    await expect(page.locator('text=TODO')).toBeVisible();
-    await expect(page.locator('text=DOING')).toBeVisible();
-    await expect(page.locator('text=DONE')).toBeVisible();
+    await expect(page.locator('text=Backlog')).toBeVisible();
+    await expect(page.locator('text=To Do')).toBeVisible();
+    await expect(page.locator('text=Doing')).toBeVisible();
+    await expect(page.locator('text=Done')).toBeVisible();
   });
   
   test('Task cards are displayed', async ({ page }) => {
@@ -26,7 +26,7 @@ test.describe('Kanban Board', () => {
   });
   
   test('Create new task', async ({ page }) => {
-    await page.click('button:has-text("Create Task"), .add-task-btn');
+    await page.click('button:has-text("Add Task")');
     await page.waitForSelector('input[name="title"]');
     await page.fill('input[name="title"]', 'E2E Test Task');
     await page.fill('textarea[name="description"]', 'Created by E2E test');
