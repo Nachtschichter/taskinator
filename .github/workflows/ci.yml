@@ -8,6 +8,39 @@ on:
 
 jobs:
   # ───────────────────────────────────────────────────────────────────────────
+  # Code Review Check (Warning Only)
+  # ───────────────────────────────────────────────────────────────────────────
+  # NOTE: This is a reminder check, NOT an enforcement gate.
+  # Auto-review must be run locally BEFORE committing (see TOOLS.md).
+  # This check only reminds developers if review documentation is missing.
+  # PRs can still be merged without review documentation (manual override).
+  # ───────────────────────────────────────────────────────────────────────────
+  review-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Check for Auto-Review in PR description
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          echo "🔍 Checking for Auto-Review documentation..."
+          
+          # Check for review indicators (case-insensitive)
+          if echo "$PR_BODY" | grep -qiE "auto-review|review-service"; then
+            echo "✅ Auto-Review documentation found"
+            echo "✅ Review process followed!"
+          else
+            echo "⚠️  WARNING: No Auto-Review documentation found!"
+            echo ""
+            echo "Reminder: Auto-review must be run BEFORE committing."
+            echo "See: TOOLS.md for review workflow instructions."
+            echo ""
+            echo "⚠️  This check is a reminder only. PR can still be merged."
+            echo "⚠️  However, code review is mandatory per workflow rules!"
+          fi
+
+  # ───────────────────────────────────────────────────────────────────────────
   # Lint & Build
   # ───────────────────────────────────────────────────────────────────────────
   lint-build:
