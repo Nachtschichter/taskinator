@@ -11,14 +11,14 @@ test.describe('Task Detail Page', () => {
   });
   
   test('Task detail page loads', async ({ page }) => {
-    const firstTask = page.locator('.task-card .btn-docs:has-text("Details")').first();
+    const firstTask = page.locator('.task-card a[href^="/tasks/"]').first();
     await firstTask.click();
     await page.waitForURL(/tasks\/\d+/);
     await expect(page.locator('.task-title')).toBeVisible();
   });
   
   test('Task details are displayed', async ({ page }) => {
-    const firstTask = page.locator('.task-card .btn-docs:has-text("Details")').first();
+    const firstTask = page.locator('.task-card a[href^="/tasks/"]').first();
     await firstTask.click();
     await page.waitForURL(/tasks\/\d+/);
     
@@ -28,14 +28,14 @@ test.describe('Task Detail Page', () => {
   });
   
   test('Changelog section exists', async ({ page }) => {
-    const firstTask = page.locator('.task-card .btn-docs:has-text("Details")').first();
+    const firstTask = page.locator('.task-card a[href^="/tasks/"]').first();
     await firstTask.click();
     await page.waitForURL(/tasks\/\d+/);
     await expect(page.locator('h2:has-text("Changelog")')).toBeVisible();
   });
   
   test('Documentation is read-only', async ({ page }) => {
-    const firstTask = page.locator('.task-card .btn-docs:has-text("Details")').first();
+    const firstTask = page.locator('.task-card a[href^="/tasks/"]').first();
     await firstTask.click();
     await page.waitForURL(/tasks\/\d+/);
     
