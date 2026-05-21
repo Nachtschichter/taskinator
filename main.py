@@ -203,8 +203,13 @@ def create_task(request: Request, title: str = Form(...), description: str = For
                 priority: str = Form("mittel"), category: str = Form("feature"), project: str = Form("")):
     if not get_user(request): return RedirectResponse("/login")
     if category == "hotfix": priority = "hoch"
+    
+    # Automatisch Workflow-Hinweis am Anfang der Beschreibung einfügen
+    workflow_hint = "⚠️ **WICHTIG:** WORKFLOW DURCHLAUFEN und MEMORY.MD BEACHTEN!\n\n"
+    full_description = workflow_hint + (description if description else "")
+    
     db = SessionLocal()
-    db.add(Task(title=title, description=description, priority=Priority(priority), 
+    db.add(Task(title=title, description=full_description, priority=Priority(priority), 
                 category=Category(category), project=project))
     db.commit()
     db.close()
