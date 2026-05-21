@@ -1,4 +1,4 @@
-"""Taskinator - Simple Kanban Board"""
+from contextlib import asynccontextmanager
 import os
 import json
 from fastapi import FastAPI, Request, Depends, Form
@@ -92,7 +92,15 @@ def get_user(request):
         return payload.get("sub")
     except: return None
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize database
+    Base.metadata.create_all(bind=engine)
+    print("✅ Database initialized")
+    yield
+    # Shutdown (optional cleanup)
+
+app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -106,11 +114,7 @@ async def add_charset_header(request: Request, call_next):
         response.headers["content-type"] = "text/html; charset=utf-8"
     return response
 
-@app.on_event("startup")
-def startup():
-    # Initialize database tables (single operation)
-    Base.metadata.create_all(bind=engine)
-    print("✅ Database initialized")
+
 
 @app.get("/", response_class=HTMLResponse)
 def root(request: Request):
