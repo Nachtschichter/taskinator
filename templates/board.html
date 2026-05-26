@@ -199,6 +199,9 @@
                 <span>📋 Backlog</span>
                 <span class="count">{{ columns.backlog|length }}</span>
             </div>
+            <button class="add-task-card" onclick="openModal()">
+                + Add Task
+            </button>
             {% for task in columns.backlog %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
@@ -215,9 +218,6 @@
                 </div>
             </div>
             {% endfor %}
-            <button class="add-task-card" onclick="openModal()">
-                + Add Task
-            </button>
         </div>
 
         <div class="column" id="todo">
