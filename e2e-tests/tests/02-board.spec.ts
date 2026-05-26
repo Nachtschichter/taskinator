@@ -32,7 +32,7 @@ test.describe('Kanban Board', () => {
     await page.fill('textarea[name="description"]', 'Created by E2E test');
     await page.selectOption('select[name="priority"]', 'mittel');
     await page.selectOption('select[name="category"]', 'feature');
-    await page.click('button[type="submit"]');
+    await page.click('#create-task-submit');
     await page.waitForTimeout(2000);
     await expect(page.locator('text=E2E Test Task')).toBeVisible();
   });
