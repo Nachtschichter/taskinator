@@ -398,14 +398,8 @@
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                credentials: 'same-origin',
                 body: formData.toString()
-            }).then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                return response.json();
-            })
+            }).then(response => response.json())
             .then(data => {
                 if (data.success) {
                     // Move the card visually without page reload
