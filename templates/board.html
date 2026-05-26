@@ -215,6 +215,10 @@
                 <div class="actions">
                     <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
                     <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
+                    <form action="/tasks/{{ task.id }}/delete" method="POST" style="display:inline;" onsubmit="return confirm('Task löschen?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="btn-small btn-delete">Delete</button>
+                    </form>
                 </div>
             </div>
             {% endfor %}
@@ -238,6 +242,10 @@
                 <div class="actions">
                     <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
                     <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
+                    <form action="/tasks/{{ task.id }}/delete" method="POST" style="display:inline;" onsubmit="return confirm('Task löschen?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="btn-small btn-delete">Delete</button>
+                    </form>
                 </div>
             </div>
             {% endfor %}
@@ -284,6 +292,10 @@
                 <div class="actions">
                     <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
                     <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
+                    <form action="/tasks/{{ task.id }}/delete" method="POST" style="display:inline;" onsubmit="return confirm('Task löschen?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit" class="btn-small btn-delete">Delete</button>
+                    </form>
                 </div>
             </div>
             {% endfor %}
@@ -330,7 +342,7 @@
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Task</button>
+                    <button type="submit" id="create-task-submit" class="btn btn-primary">Create Task</button>
                 </div>
             </form>
         </div>
