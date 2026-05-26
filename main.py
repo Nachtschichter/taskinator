@@ -1,8 +1,8 @@
 from contextlib import asynccontextmanager
 import os
 import json
-from fastapi import FastAPI, Request, Depends, Form
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi import FastAPI, Request, Depends, Form, Query
+from fastapi.responses import HTMLResponse, RedirectResponse, Response, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import create_engine, Column, Integer, String, Text, ForeignKey, DateTime, Enum, text
@@ -216,17 +216,59 @@ def create_task(request: Request, title: str = Form(...), description: str = For
     return RedirectResponse("/board", status_code=302)
 
 @app.post("/tasks/{tid}/move")
-def move_task(request: Request, tid: int, direction: str = Form(...)):
-    if not get_user(request): return RedirectResponse("/login")
+async def move_task(request: Request, tid: int, ajax: str = Query("")):
+    if not get_user(request): 
+        if ajax:
+            return JSONResponse({"success": False, "error": "Unauthorized"}, status_code=401)
+        return RedirectResponse("/login")
     db = SessionLocal()
-    task = db.query(Task).filter(Task.id == tid).first()
-    if task:
+    try:
+        task = db.query(Task).filter(Task.id == tid).first()
+        if not task:
+            if ajax:
+                return JSONResponse({"success": False, "error": "Task not found"}, status_code=404)
+            return RedirectResponse("/board", status_code=302)
+        
+        # Read parameters from form body
+        form_data = await request.form()
+        direction = form_data.get("direction", "")
+        status = form_data.get("status", "")
+        
         order = ["backlog", "todo", "doing", "done"]
-        idx = order.index(task.status.value)
-        if direction == "forward" and idx < 3: task.status = TaskStatus(order[idx+1])
-        elif direction == "backward" and idx > 0: task.status = TaskStatus(order[idx-1])
-        db.commit()
-    db.close()
+        try:
+            current_idx = order.index(task.status.value)
+        except ValueError:
+            if ajax:
+                return JSONResponse({"success": False, "error": "Invalid status"}, status_code=400)
+            return RedirectResponse("/board", status_code=302)
+        
+        try:
+            if status:
+                # Direct status update (from frontend drag&drop)
+                if status not in order:
+                    if ajax:
+                        return JSONResponse({"success": False, "error": "Invalid status"}, status_code=400)
+                    return RedirectResponse("/board", status_code=302)
+                task.status = TaskStatus(status)
+            elif direction:
+                # Relative move (forward/backward)
+                if direction == "forward" and current_idx < 3:
+                    task.status = TaskStatus(order[current_idx+1])
+                elif direction == "backward" and current_idx > 0:
+                    task.status = TaskStatus(order[current_idx-1])
+                # Invalid direction is silently ignored (no-op)
+            
+            db.commit()
+            
+            if ajax:
+                return JSONResponse({"success": True, "status": task.status.value})
+        except Exception as e:
+            db.rollback()
+            if ajax:
+                return JSONResponse({"success": False, "error": "Database error"}, status_code=500)
+            raise
+    finally:
+        db.close()
     return RedirectResponse("/board", status_code=302)
 
 @app.post("/tasks/{tid}/delete")

@@ -106,6 +106,21 @@
             background: rgba(255,255,255,0.8);
             transform: translateY(-2px);
         }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .toast.show { opacity: 1; }
+        .toast.success { background: #27ae60; }
+        .toast.error { background: #e74c3c; }
         .modal {
             display: none;
             position: fixed;
@@ -356,19 +371,65 @@
             e.preventDefault();
         }
         
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+        
         function handleDrop(e) {
             e.preventDefault();
             const column = this;
             const taskId = draggedTask.dataset.taskId;
             const newStatus = column.id;
             
-            // Move task via form submission
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/tasks/${taskId}/move`;
-            form.innerHTML = `<input type="hidden" name="status" value="${newStatus}">`;
-            document.body.appendChild(form);
-            form.submit();
+            // Use fetch API for smooth drag and drop
+            const formData = new URLSearchParams();
+            formData.append('direction', '');
+            formData.append('status', newStatus);
+            
+            fetch(`/tasks/${taskId}/move?ajax=1`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: formData.toString()
+            }).then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Move the card visually without page reload
+                    const addButton = column.querySelector('.add-task-card');
+                    if (addButton) {
+                        column.insertBefore(draggedTask, addButton);
+                    } else {
+                        column.appendChild(draggedTask);
+                    }
+                    // Update counts
+                    updateColumnCounts();
+                    showToast('Task verschoben!', 'success');
+                } else {
+                    console.error('Move failed:', data.error);
+                    draggedTask.style.opacity = '1';
+                    showToast(data.error || 'Fehler beim Verschieben', 'error');
+                }
+            }).catch(err => {
+                console.error('Error:', err);
+                draggedTask.style.opacity = '1';
+                showToast('Netzwerkfehler', 'error');
+            });
+        }
+        
+        function updateColumnCounts() {
+            document.querySelectorAll('.column').forEach(col => {
+                const count = col.querySelectorAll('.task-card').length;
+                const countEl = col.querySelector('.count');
+                if (countEl) countEl.textContent = count;
+            });
         }
     </script>
 </body>
