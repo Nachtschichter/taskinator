@@ -197,12 +197,12 @@
         <div class="column" id="backlog">
             <div class="column-header">
                 <span>📋 Backlog</span>
-                <span class="count">{{ columns.backlog|length }}</span>
+                <span class="count">{{ columns.BACKLOG|length }}</span>
             </div>
             <button class="add-task-card" onclick="openModal()">
                 + Add Task
             </button>
-            {% for task in columns.backlog %}
+            {% for task in columns.BACKLOG %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
@@ -214,7 +214,9 @@
                 {% endif %}
                 <div class="actions">
                     <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
-                    <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
+                    <form action="/tasks/{{ task.id }}/edit-form" method="GET" style="display:inline;">
+                        <button type="submit" class="btn-small btn-edit">Edit</button>
+                    </form>
                     <form action="/tasks/{{ task.id }}/delete" method="POST" style="display:inline;" onsubmit="return confirm('Task löschen?');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <button type="submit" class="btn-small btn-delete">Delete</button>
@@ -227,9 +229,9 @@
         <div class="column" id="todo">
             <div class="column-header">
                 <span>✅ To Do</span>
-                <span class="count">{{ columns.todo|length }}</span>
+                <span class="count">{{ columns.TODO|length }}</span>
             </div>
-            {% for task in columns.todo %}
+            {% for task in columns.TODO %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
@@ -241,7 +243,9 @@
                 {% endif %}
                 <div class="actions">
                     <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
-                    <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
+                    <form action="/tasks/{{ task.id }}/edit-form" method="GET" style="display:inline;">
+                        <button type="submit" class="btn-small btn-edit">Edit</button>
+                    </form>
                     <form action="/tasks/{{ task.id }}/delete" method="POST" style="display:inline;" onsubmit="return confirm('Task löschen?');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <button type="submit" class="btn-small btn-delete">Delete</button>
@@ -254,9 +258,9 @@
         <div class="column" id="doing">
             <div class="column-header">
                 <span>🔄 Doing</span>
-                <span class="count">{{ columns.doing|length }}</span>
+                <span class="count">{{ columns.DOING|length }}</span>
             </div>
-            {% for task in columns.doing %}
+            {% for task in columns.DOING %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
@@ -268,7 +272,6 @@
                 {% endif %}
                 <div class="actions">
                     <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
-                    <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
                 </div>
             </div>
             {% endfor %}
@@ -277,9 +280,9 @@
         <div class="column" id="done">
             <div class="column-header">
                 <span>✅ Done</span>
-                <span class="count">{{ columns.done|length }}</span>
+                <span class="count">{{ columns.DONE|length }}</span>
             </div>
-            {% for task in columns.done %}
+            {% for task in columns.DONE %}
             <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
@@ -291,7 +294,6 @@
                 {% endif %}
                 <div class="actions">
                     <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
-                    <a href="/tasks/{{ task.id }}/edit" class="btn-small btn-edit">Edit</a>
                     <form action="/tasks/{{ task.id }}/delete" method="POST" style="display:inline;" onsubmit="return confirm('Task löschen?');">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                         <button type="submit" class="btn-small btn-delete">Delete</button>
@@ -319,9 +321,9 @@
                 <div class="form-group">
                     <label for="priority">Priority</label>
                     <select id="priority" name="priority">
-                        <option value="niedrig">Low</option>
-                        <option value="mittel" selected>Medium</option>
-                        <option value="hoch">High</option>
+                        <option value="LOW">Low</option>
+                        <option value="MEDIUM" selected>Medium</option>
+                        <option value="HIGH">High</option>
                     </select>
                 </div>
                 <div class="form-group">

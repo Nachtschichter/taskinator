@@ -1,0 +1,42 @@
+<testsuites id="" name="" tests="13" failures="0" skipped="0" errors="0" time="15.437057000000001">
+<testsuite name="01-auth.spec.ts" timestamp="2026-05-26T15:58:00.413Z" hostname="chromium" tests="5" failures="0" skipped="0" time="7.262" errors="0">
+<testcase name="Authentication › Login page loads" classname="01-auth.spec.ts" time="0.819">
+</testcase>
+<testcase name="Authentication › Login with valid credentials" classname="01-auth.spec.ts" time="1.568">
+</testcase>
+<testcase name="Authentication › Login with invalid credentials" classname="01-auth.spec.ts" time="3.144">
+</testcase>
+<testcase name="Authentication › Logout functionality" classname="01-auth.spec.ts" time="1.243">
+</testcase>
+<testcase name="Authentication › Protected page redirects to login" classname="01-auth.spec.ts" time="0.488">
+</testcase>
+</testsuite>
+<testsuite name="02-board.spec.ts" timestamp="2026-05-26T15:58:00.413Z" hostname="chromium" tests="4" failures="0" skipped="0" time="7.343" errors="0">
+<testcase name="Kanban Board › Board page loads" classname="02-board.spec.ts" time="1.214">
+</testcase>
+<testcase name="Kanban Board › Task cards are displayed" classname="02-board.spec.ts" time="1.132">
+<system-out>
+<![CDATA[Found 2 task cards
+]]>
+</system-out>
+</testcase>
+<testcase name="Kanban Board › Create new task" classname="02-board.spec.ts" time="3.94">
+</testcase>
+<testcase name="Kanban Board › Move task between columns" classname="02-board.spec.ts" time="1.057">
+<system-out>
+<![CDATA[Task move test - manual verification recommended
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="03-task-detail.spec.ts" timestamp="2026-05-26T15:58:00.413Z" hostname="chromium" tests="4" failures="0" skipped="0" time="11.673" errors="0">
+<testcase name="Task Detail Page › Task detail page loads" classname="03-task-detail.spec.ts" time="1.693">
+</testcase>
+<testcase name="Task Detail Page › Task details are displayed" classname="03-task-detail.spec.ts" time="3.936">
+</testcase>
+<testcase name="Task Detail Page › Changelog section exists" classname="03-task-detail.spec.ts" time="4.461">
+</testcase>
+<testcase name="Task Detail Page › Documentation is read-only" classname="03-task-detail.spec.ts" time="1.583">
+</testcase>
+</testsuite>
+</testsuites>

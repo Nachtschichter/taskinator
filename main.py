@@ -18,9 +18,9 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data/taskinator.db")
 Base = declarative_base()
 
 class Priority(enum.Enum):
-    LOW = "niedrig"
-    MEDIUM = "mittel"
-    HIGH = "hoch"
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
 
 class Category(enum.Enum):
     FEATURE = "feature"
@@ -28,10 +28,10 @@ class Category(enum.Enum):
     HOTFIX = "hotfix"
 
 class TaskStatus(enum.Enum):
-    BACKLOG = "backlog"
-    TODO = "todo"
-    DOING = "doing"
-    DONE = "done"
+    BACKLOG = "BACKLOG"
+    TODO = "TODO"
+    DOING = "DOING"
+    DONE = "DONE"
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -189,20 +189,20 @@ def board(request: Request):
     tasks = db.query(Task).order_by(Task.created_at.desc()).all()
     projects = db.query(Project).order_by(Project.name).all()
     db.close()
-    cols = {"backlog": [], "todo": [], "doing": [], "done": []}
+    cols = {"BACKLOG": [], "TODO": [], "DOING": [], "DONE": []}
     for t in tasks:
         cols[t.status.value].append({'id': t.id, 'title': t.title, 'description': t.description or '', 'priority': t.priority.value, 
             'category': t.category.value, 'project': t.project, 'documentation': t.documentation})
-    prio = {"hoch": 0, "mittel": 1, "niedrig": 2}
+    prio = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
     for c in cols.values(): c.sort(key=lambda x: prio.get(x['priority'], 1))
     html_content = templates.get_template("board.html").render({"request": request, "columns": cols, "user": user, "projects": projects})
     return Response(content=html_content, media_type="text/html; charset=utf-8")
 
 @app.post("/tasks/create")
 def create_task(request: Request, title: str = Form(...), description: str = Form(""), 
-                priority: str = Form("mittel"), category: str = Form("feature"), project: str = Form("")):
+                priority: str = Form("MEDIUM"), category: str = Form("feature"), project: str = Form("")):
     if not get_user(request): return RedirectResponse("/login")
-    if category == "hotfix": priority = "hoch"
+    if category == "hotfix": priority = "HIGH"
     
     # Automatisch Workflow-Hinweis am Anfang der Beschreibung einfügen
     workflow_hint = "⚠️ **WICHTIG:** WORKFLOW DURCHLAUFEN und MEMORY.MD BEACHTEN!\n\n"
@@ -289,12 +289,28 @@ def update_task(request: Request, tid: int, documentation: str = Form("")):
     db.close()
     return RedirectResponse("/board", status_code=302)
 
+@app.get("/tasks/{tid}/edit-form")
+def edit_task_form(request: Request, tid: int):
+    if not get_user(request): return RedirectResponse("/login")
+    db = SessionLocal()
+    task = db.query(Task).filter(Task.id == tid).first()
+    if not task:
+        db.close()
+        return Response(content="Task not found", status_code=404, media_type="text/plain")
+    html_content = templates.get_template("edit_task.html").render({
+        "request": request,
+        "task": task,
+        "csrf_token": request.cookies.get("csrf_token", "")
+    })
+    db.close()
+    return Response(content=html_content, media_type="text/html; charset=utf-8")
+
 @app.post("/tasks/update-details")
 def update_task_details(request: Request, task_id: int = Form(...), title: str = Form(...), 
-                        description: str = Form(""), priority: str = Form("mittel"), 
+                        description: str = Form(""), priority: str = Form("MEDIUM"), 
                         category: str = Form("feature"), project: str = Form("")):
     if not get_user(request): return RedirectResponse("/login")
-    if category == "hotfix": priority = "hoch"
+    if category == "hotfix": priority = "HIGH"
     db = SessionLocal()
     db.query(Task).filter(Task.id == task_id).update({
         "title": title,
