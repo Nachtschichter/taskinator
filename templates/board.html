@@ -232,13 +232,13 @@
                 <div class="status-select-container">
                     <select class="status-select" 
                             data-task-id="{{ task.id }}" 
-                            data-current-status="{{ task.status.value }}"
+                            data-current-status="{{ task.status }}"
                             onchange="handleStatusChange(this)"
-                            {% if task.status.value == 'DONE' %}disabled{% endif %}>
-                        <option value="BACKLOG" {% if task.status.value == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
-                        <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %}>✅ To Do</option>
-                        <option value="DOING" {% if task.status.value == 'DOING' %}selected{% endif %}>🔄 Doing</option>
-                        <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %}>✅ Done</option>
+                            {% if task.status == 'DONE' %}disabled{% endif %}>
+                        <option value="BACKLOG" {% if task.status == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
+                        <option value="TODO" {% if task.status == 'TODO' %}selected{% endif %}>✅ To Do</option>
+                        <option value="DOING" {% if task.status == 'DOING' %}selected{% endif %}>🔄 Doing</option>
+                        <option value="DONE" {% if task.status == 'DONE' %}selected{% endif %}>✅ Done</option>
                     </select>
                 </div>
                 <div class="actions">
@@ -274,13 +274,13 @@
                 <div class="status-select-container">
                     <select class="status-select" 
                             data-task-id="{{ task.id }}" 
-                            data-current-status="{{ task.status.value }}"
+                            data-current-status="{{ task.status }}"
                             onchange="handleStatusChange(this)"
-                            {% if task.status.value == 'DONE' %}disabled{% endif %}>
-                        <option value="BACKLOG" {% if task.status.value == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
-                        <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %}>✅ To Do</option>
-                        <option value="DOING" {% if task.status.value == 'DOING' %}selected{% endif %}>🔄 Doing</option>
-                        <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %}>✅ Done</option>
+                            {% if task.status == 'DONE' %}disabled{% endif %}>
+                        <option value="BACKLOG" {% if task.status == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
+                        <option value="TODO" {% if task.status == 'TODO' %}selected{% endif %}>✅ To Do</option>
+                        <option value="DOING" {% if task.status == 'DOING' %}selected{% endif %}>🔄 Doing</option>
+                        <option value="DONE" {% if task.status == 'DONE' %}selected{% endif %}>✅ Done</option>
                     </select>
                 </div>
                 <div class="actions">
@@ -316,13 +316,13 @@
                 <div class="status-select-container">
                     <select class="status-select" 
                             data-task-id="{{ task.id }}" 
-                            data-current-status="{{ task.status.value }}"
+                            data-current-status="{{ task.status }}"
                             onchange="handleStatusChange(this)"
-                            {% if task.status.value == 'DONE' %}disabled{% endif %}>
-                        <option value="BACKLOG" {% if task.status.value == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
-                        <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %}>✅ To Do</option>
-                        <option value="DOING" {% if task.status.value == 'DOING' %}selected{% endif %}>🔄 Doing</option>
-                        <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %}>✅ Done</option>
+                            {% if task.status == 'DONE' %}disabled{% endif %}>
+                        <option value="BACKLOG" {% if task.status == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
+                        <option value="TODO" {% if task.status == 'TODO' %}selected{% endif %}>✅ To Do</option>
+                        <option value="DOING" {% if task.status == 'DOING' %}selected{% endif %}>🔄 Doing</option>
+                        <option value="DONE" {% if task.status == 'DONE' %}selected{% endif %}>✅ Done</option>
                     </select>
                 </div>
                 <div class="actions">
@@ -351,13 +351,13 @@
                 <div class="status-select-container">
                     <select class="status-select" 
                             data-task-id="{{ task.id }}" 
-                            data-current-status="{{ task.status.value }}"
+                            data-current-status="{{ task.status }}"
                             onchange="handleStatusChange(this)"
-                            {% if task.status.value == 'DONE' %}disabled{% endif %}>
-                        <option value="BACKLOG" {% if task.status.value == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
-                        <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %}>✅ To Do</option>
-                        <option value="DOING" {% if task.status.value == 'DOING' %}selected{% endif %}>🔄 Doing</option>
-                        <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %}>✅ Done</option>
+                            {% if task.status == 'DONE' %}disabled{% endif %}>
+                        <option value="BACKLOG" {% if task.status == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
+                        <option value="TODO" {% if task.status == 'TODO' %}selected{% endif %}>✅ To Do</option>
+                        <option value="DOING" {% if task.status == 'DOING' %}selected{% endif %}>🔄 Doing</option>
+                        <option value="DONE" {% if task.status == 'DONE' %}selected{% endif %}>✅ Done</option>
                     </select>
                 </div>
                 <div class="actions">
