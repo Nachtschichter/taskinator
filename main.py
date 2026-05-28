@@ -15,6 +15,18 @@ from jose import JWTError, jwt
 SECRET_KEY = os.getenv("SECRET_KEY", "taskinator-secret")
 ALGORITHM = "HS256"
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data/taskinator.db")
+
+# Ensure data directory exists for SQLite
+if DATABASE_URL.startswith('sqlite'):
+    db_path = DATABASE_URL.replace('sqlite:///', '').replace('sqlite://', '')
+    if db_path and not db_path.startswith('/'):
+        db_path = os.path.join(os.getcwd(), db_path)
+    if db_path:
+        data_dir = os.path.dirname(db_path)
+        if data_dir and not os.path.exists(data_dir):
+            os.makedirs(data_dir, exist_ok=True)
+            print(f"✅ Created data directory: {data_dir}")
+
 Base = declarative_base()
 
 class Priority(enum.Enum):
@@ -234,7 +246,7 @@ async def move_task(request: Request, tid: int, ajax: str = Query("")):
         direction = form_data.get("direction", "")
         status = form_data.get("status", "")
         
-        order = ["backlog", "todo", "doing", "done"]
+        order = ["BACKLOG", "TODO", "DOING", "DONE"]
         try:
             current_idx = order.index(task.status.value)
         except ValueError:
@@ -243,8 +255,14 @@ async def move_task(request: Request, tid: int, ajax: str = Query("")):
             return RedirectResponse("/board", status_code=302)
         
         try:
+            # DONE-Validation: Tasks in DONE cannot be moved back
+            if task.status.value == 'done' and status != 'done':
+                if ajax:
+                    return JSONResponse({"success": False, "error": "Tasks in DONE cannot be moved back"}, status_code=403)
+                return RedirectResponse("/board", status_code=302)
+            
             if status:
-                # Direct status update (from frontend drag&drop)
+                # Direct status update (from frontend dropdown)
                 if status not in order:
                     if ajax:
                         return JSONResponse({"success": False, "error": "Invalid status"}, status_code=400)

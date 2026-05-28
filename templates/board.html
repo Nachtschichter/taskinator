@@ -45,7 +45,7 @@
             padding: 16px;
             margin-bottom: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            cursor: grab;
+            
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .task-card:hover {
@@ -69,6 +69,22 @@
             margin-bottom: 12px;
         }
         .task-card .actions {
+        .status-select {
+            margin: 8px 0;
+            padding: 6px 10px;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .status-select:disabled {
+            background: #f0f0f0;
+            color: #999;
+            cursor: not-allowed;
+            border-color: #ccc;
+        }
             display: flex;
             gap: 8px;
         }
@@ -203,7 +219,7 @@
                 + Add Task
             </button>
             {% for task in columns.BACKLOG %}
-            <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
+            <div class="task-card"  data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
                     <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
@@ -212,6 +228,19 @@
                 {% if task.description %}
                 <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
                 {% endif %}
+                
+                <div class="status-select-container">
+                    <select class="status-select" 
+                            data-task-id="{{ task.id }}" 
+                            data-current-status="{{ task.status.value }}"
+                            onchange="handleStatusChange(this)"
+                            {% if task.status.value == 'DONE' %}disabled{% endif %}>
+                        <option value="BACKLOG" {% if task.status.value == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
+                        <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %}>✅ To Do</option>
+                        <option value="DOING" {% if task.status.value == 'DOING' %}selected{% endif %}>🔄 Doing</option>
+                        <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %}>✅ Done</option>
+                    </select>
+                </div>
                 <div class="actions">
                     <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
                     <form action="/tasks/{{ task.id }}/edit-form" method="GET" style="display:inline;">
@@ -232,7 +261,7 @@
                 <span class="count">{{ columns.TODO|length }}</span>
             </div>
             {% for task in columns.TODO %}
-            <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
+            <div class="task-card"  data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
                     <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
@@ -241,6 +270,19 @@
                 {% if task.description %}
                 <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
                 {% endif %}
+                
+                <div class="status-select-container">
+                    <select class="status-select" 
+                            data-task-id="{{ task.id }}" 
+                            data-current-status="{{ task.status.value }}"
+                            onchange="handleStatusChange(this)"
+                            {% if task.status.value == 'DONE' %}disabled{% endif %}>
+                        <option value="BACKLOG" {% if task.status.value == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
+                        <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %}>✅ To Do</option>
+                        <option value="DOING" {% if task.status.value == 'DOING' %}selected{% endif %}>🔄 Doing</option>
+                        <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %}>✅ Done</option>
+                    </select>
+                </div>
                 <div class="actions">
                     <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
                     <form action="/tasks/{{ task.id }}/edit-form" method="GET" style="display:inline;">
@@ -261,7 +303,7 @@
                 <span class="count">{{ columns.DOING|length }}</span>
             </div>
             {% for task in columns.DOING %}
-            <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
+            <div class="task-card"  data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
                     <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
@@ -270,6 +312,19 @@
                 {% if task.description %}
                 <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
                 {% endif %}
+                
+                <div class="status-select-container">
+                    <select class="status-select" 
+                            data-task-id="{{ task.id }}" 
+                            data-current-status="{{ task.status.value }}"
+                            onchange="handleStatusChange(this)"
+                            {% if task.status.value == 'DONE' %}disabled{% endif %}>
+                        <option value="BACKLOG" {% if task.status.value == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
+                        <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %}>✅ To Do</option>
+                        <option value="DOING" {% if task.status.value == 'DOING' %}selected{% endif %}>🔄 Doing</option>
+                        <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %}>✅ Done</option>
+                    </select>
+                </div>
                 <div class="actions">
                     <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
                 </div>
@@ -283,7 +338,7 @@
                 <span class="count">{{ columns.DONE|length }}</span>
             </div>
             {% for task in columns.DONE %}
-            <div class="task-card" draggable="true" data-task-id="{{ task.id }}">
+            <div class="task-card"  data-task-id="{{ task.id }}">
                 <h3>{{ task.title }}</h3>
                 <div class="meta">
                     <span class="badge priority-{{ task.priority }}">{{ task.priority }}</span>
@@ -292,6 +347,19 @@
                 {% if task.description %}
                 <div class="description">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
                 {% endif %}
+                
+                <div class="status-select-container">
+                    <select class="status-select" 
+                            data-task-id="{{ task.id }}" 
+                            data-current-status="{{ task.status.value }}"
+                            onchange="handleStatusChange(this)"
+                            {% if task.status.value == 'DONE' %}disabled{% endif %}>
+                        <option value="BACKLOG" {% if task.status.value == 'BACKLOG' %}selected{% endif %}>📋 Backlog</option>
+                        <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %}>✅ To Do</option>
+                        <option value="DOING" {% if task.status.value == 'DOING' %}selected{% endif %}>🔄 Doing</option>
+                        <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %}>✅ Done</option>
+                    </select>
+                </div>
                 <div class="actions">
                     <a href="/tasks/{{ task.id }}" class="btn-small btn-view">View</a>
                     <form action="/tasks/{{ task.id }}/delete" method="POST" style="display:inline;" onsubmit="return confirm('Task löschen?');">
@@ -358,33 +426,7 @@
             document.getElementById('createTaskModal').classList.remove('active');
         }
         
-        // Drag and Drop
-        document.querySelectorAll('.task-card[draggable]').forEach(card => {
-            card.addEventListener('dragstart', handleDragStart);
-            card.addEventListener('dragend', handleDragEnd);
-        });
-        
-        document.querySelectorAll('.column').forEach(column => {
-            column.addEventListener('dragover', handleDragOver);
-            column.addEventListener('drop', handleDrop);
-        });
-        
-        let draggedTask = null;
-        
-        function handleDragStart(e) {
-            draggedTask = this;
-            this.style.opacity = '0.5';
-        }
-        
-        function handleDragEnd(e) {
-            this.style.opacity = '1';
-            draggedTask = null;
-        }
-        
-        function handleDragOver(e) {
-            e.preventDefault();
-        }
-        
+        // Status Dropdown Handler
         function showToast(message, type = 'success') {
             const toast = document.createElement('div');
             toast.className = `toast ${type} show`;
@@ -396,15 +438,22 @@
             }, 3000);
         }
         
-        function handleDrop(e) {
-            e.preventDefault();
-            const column = this;
-            const taskId = draggedTask.dataset.taskId;
-            const newStatus = column.id;
+        function handleStatusChange(select) {
+            const taskId = select.dataset.taskId;
+            const currentStatus = select.dataset.currentStatus;
+            const newStatus = select.value;
             
-            // Use fetch API for smooth drag and drop
+            // Prevent changing from DONE
+            if (currentStatus === 'DONE') {
+                showToast('Aufgaben in DONE können nicht verschoben werden!', 'error');
+                select.value = 'DONE';
+                return;
+            }
+            
+            // Disable select during request
+            select.disabled = true;
+            
             const formData = new URLSearchParams();
-            formData.append('direction', '');
             formData.append('status', newStatus);
             
             fetch(`/tasks/${taskId}/move?ajax=1`, {
@@ -422,26 +471,51 @@
             })
             .then(data => {
                 if (data.success) {
-                    // Move the card visually without page reload
-                    const addButton = column.querySelector('.add-task-card');
-                    if (addButton) {
-                        column.insertBefore(draggedTask, addButton);
-                    } else {
-                        column.appendChild(draggedTask);
-                    }
-                    // Update counts
-                    updateColumnCounts();
-                    showToast('Task verschoben!', 'success');
+                    // Move card to new column
+                    moveCardToColumn(taskId, newStatus);
+                    showToast('Status aktualisiert!', 'success');
                 } else {
                     console.error('Move failed:', data.error);
-                    draggedTask.style.opacity = '1';
-                    showToast(data.error || 'Fehler beim Verschieben', 'error');
+                    select.value = currentStatus;
+                    showToast(data.error || 'Fehler beim Aktualisieren', 'error');
                 }
             }).catch(err => {
                 console.error('Error:', err);
-                draggedTask.style.opacity = '1';
+                select.value = currentStatus;
                 showToast('Netzwerkfehler', 'error');
+            }).finally(() => {
+                if (newStatus !== 'DONE') {
+                    select.disabled = false;
+                }
             });
+        }
+        
+        function moveCardToColumn(taskId, newStatus) {
+            const card = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+            if (!card) return;
+            
+            const targetColumn = document.getElementById(newStatus.toLowerCase());
+            if (!targetColumn) return;
+            
+            // Move card to target column (after add button if exists)
+            const addButton = targetColumn.querySelector('.add-task-card');
+            if (addButton) {
+                targetColumn.insertBefore(card, addButton.nextSibling);
+            } else {
+                targetColumn.appendChild(card);
+            }
+            
+            // Update the select's current status
+            const select = card.querySelector('.status-select');
+            if (select) {
+                select.dataset.currentStatus = newStatus;
+                if (newStatus === 'DONE') {
+                    select.disabled = true;
+                }
+            }
+            
+            // Update counts
+            updateColumnCounts();
         }
         
         function updateColumnCounts() {
