@@ -14,7 +14,7 @@ from jose import JWTError, jwt
 
 SECRET_KEY = os.getenv("SECRET_KEY", "taskinator-secret")
 ALGORITHM = "HS256"
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///data/taskinator.db")
+DATABASE_URL = "sqlite:///:memory:"
 
 # Ensure data directory exists for SQLite
 if DATABASE_URL.startswith('sqlite'):
