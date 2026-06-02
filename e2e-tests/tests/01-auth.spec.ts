@@ -39,7 +39,7 @@ test.describe('Authentication', () => {
     await page.waitForURL(/login/);
   });
   
-L test('Protected page redirects to login', async ({ page }) => {
+  test('Protected page redirects to login', async ({ page }) => {
     await page.goto('/board');
     await page.waitForURL(/login/);
   });
