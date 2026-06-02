@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+{% extends "layout/main.html" %}
+
+{% block title %}Kanban Board{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Task Board</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-add-task">
+            <i class="bi bi-plus-lg"></i> Add Task
+        </button>
+    </div>
+
+    <!-- Kanban Container -->
+    <div class="row flex-nowrap overflow-auto pb-3" style="height: calc(100vh - 200px);">
+        <!-- Backlog Lane -->
+        <div class="col-md-3 col-sm-6 mb-3" id="lane-backlog">
+            <div class="card card-outline card-secondary">
+                <div class="card-header text-center">
+                    <h3 class="card-header-title">Backlog <span class="badge bg-secondary float-end" id="count-backlog">0</span></h3>
+                </div>
+                <div class="card-body p-2 kanban-lane" data-status="backlog">
+                    <!-- Cards injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- To Do Lane -->
+        <div class="col-md-3 col-sm-6 mb-3" id="lane-todo">
+            <div class="card card-outline card-info">
+                <div class="card-header text-center">
+                    <h3 class="card-header-title">To Do <span class="badge bg-info float-end" id="count-todo">0</span></h3>
+                </div>
+                <div class="card-body p-2 kanban-lane" data-status="todo">
+                    <!-- Cards injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Doing Lane -->
+        <div class="col-md-3 col-sm-6 mb-3" id="lane-doing">
+            <div class="card card-outline card-warning">
+                <div class="card-header text-center">
+                    <h3 class="card-header-title">Doing <span class="badge bg-warning float-end" id="count-doing">0</span></h3>
+                </div>
+                <div class="card-body p-2 kanban-lane" data-status="doing">
+                    <!-- Cards injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Done Lane -->
+        <div class="col-md-3 col-sm-6 mb-3" id="lane-done">
+            <div class="card card-outline card-success">
+                <div class="card-header text-center">
+                    <h3 class="card-header-title">Done <span class="badge bg-success float-end" id="count-done">0</span></h3>
+                </div>
+                <div class="card-body p-2 kanban-lane" data-status="done">
+                    <!-- Cards injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal fade" id="modal-add-task" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add-task">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-control" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" name="category">
+                                <option value="feature">Feature</option>
+                                <option value="bug">Bug</option>
+                                <option value="improvement">Improvement</option>
+                                <option value="tech-debt">Tech Debt</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Priority</label>
+                            <select class="form-select" name="priority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn-save-task">Save Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="/static/js/kanban.js"></script>
+{% endblock %}

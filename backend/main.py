@@ -204,7 +204,7 @@ def board(request: Request):
     cols = {"BACKLOG": [], "TODO": [], "DOING": [], "DONE": []}
     for t in tasks:
         cols[t.status.value].append({'id': t.id, 'title': t.title, 'description': t.description or '', 'priority': t.priority.value, 
-            'category': t.category.value, 'project': t.project, 'documentation': t.documentation})
+            'category': t.category.value, 'status': t.status.value, 'project': t.project, 'documentation': t.documentation})
     prio = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
     for c in cols.values(): c.sort(key=lambda x: prio.get(x['priority'], 1))
     html_content = templates.get_template("board.html").render({"request": request, "columns": cols, "user": user, "projects": projects})
@@ -256,7 +256,7 @@ async def move_task(request: Request, tid: int, ajax: str = Query("")):
         
         try:
             # DONE-Validation: Tasks in DONE cannot be moved back
-            if task.status.value == 'done' and status != 'done':
+            if task.status.value.lower() == 'done' and status != 'done':
                 if ajax:
                     return JSONResponse({"success": False, "error": "Tasks in DONE cannot be moved back"}, status_code=403)
                 return RedirectResponse("/board", status_code=302)
