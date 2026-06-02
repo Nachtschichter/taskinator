@@ -82,10 +82,7 @@ class Project(Base):
 
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    pool_pre_ping=False,
-    pool_size=1,
-    max_overflow=0
+    connect_args={"check_same_thread": False}
 )
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
