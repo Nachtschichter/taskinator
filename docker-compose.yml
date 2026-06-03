@@ -9,8 +9,13 @@ services:
     volumes:
       - taskinator-db:/app/data
     environment:
-      - SECRET_KEY=taskinator-production-secret-key-change-me
+      # IMPORTANT: Set these in a .env file or export them before docker compose up.
+      # The application will REFUSE to start with the default SECRET_KEY.
+      - SECRET_KEY=${SECRET_KEY}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - DATABASE_URL=sqlite:////app/data/taskinator.db
+      # Set COOKIE_SECURE=true in production (requires HTTPS)
+      - COOKIE_SECURE=${COOKIE_SECURE:-false}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9900/login')"]

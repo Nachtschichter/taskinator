@@ -1,0 +1,65 @@
+{% extends "layout/main.html" %}
+
+{% block title %}Priorities{% endblock %}
+{% block page_title %}Priority Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Create Priority</h3>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/settings/priorities/create" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <div class="mb-3">
+                            <label class="form-label">Label</label>
+                            <input type="text" class="form-control" name="label" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Color (hex)</label>
+                            <input type="color" class="form-control" name="color" value="#667eea">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Sort Order</label>
+                            <input type="number" class="form-control" name="sort_order" value="0">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Existing Priorities</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr><th>Label</th><th>Color</th><th>Sort</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for p in priorities %}
+                            <tr>
+                                <td>{{ p.label }}</td>
+                                <td><span class="badge" style="background:{{ p.color }}">&nbsp;&nbsp;&nbsp;</span> {{ p.color }}</td>
+                                <td>{{ p.sort_order }}</td>
+                                <td>
+                                    <form action="/admin/settings/priorities/{{ p.id }}/delete" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete priority?')">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

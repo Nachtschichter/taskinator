@@ -1,0 +1,60 @@
+{% extends "layout/main.html" %}
+
+{% block title %}Task Types{% endblock %}
+{% block page_title %}Task Type Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Create Task Type</h3>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/settings/types/create" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <div class="mb-3">
+                            <label class="form-label">Label</label>
+                            <input type="text" class="form-control" name="label" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Color (hex)</label>
+                            <input type="color" class="form-control" name="color" value="#667eea">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Existing Task Types</h3>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr><th>Label</th><th>Color</th><th>Actions</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for t in types %}
+                            <tr>
+                                <td>{{ t.label }}</td>
+                                <td><span class="badge" style="background:{{ t.color }}">&nbsp;&nbsp;&nbsp;</span> {{ t.color }}</td>
+                                <td>
+                                    <form action="/admin/settings/types/{{ t.id }}/delete" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete type?')">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
