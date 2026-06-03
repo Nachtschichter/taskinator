@@ -11,7 +11,8 @@ Testet:
 import pytest
 from playwright.sync_api import sync_playwright
 
-BASE_URL = "http://localhost:9900"
+import os
+BASE_URL = os.getenv("TEST_BASE_URL", "http://localhost:9900")
 ADMIN_USER = "admin"
 ADMIN_PASS = "***"
 

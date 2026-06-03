@@ -6,7 +6,8 @@ Testet die Backend-API ohne Browser
 import requests
 import sys
 
-BASE_URL = "http://localhost:9900"
+import os
+BASE_URL = os.getenv("TEST_BASE_URL", "http://localhost:9900")
 ADMIN_USER = "admin"
 ADMIN_PASS = "***"
 

@@ -11,24 +11,20 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime, timedelta, timezone
 import enum
-from passlib.context import CryptContext
 from jose import JWTError, jwt
 
 import re
 
-# --- Configuration & Security Hardening ---
-SECRET_KEY = os.getenv("SECRET_KEY", "")
-DEFAULT_SECRET = "taskinator-production-secret-key-change-me"
+# --- Centralized Configuration ---
+from backend.config import config
+from backend.security import hash_password, verify_password, validate_password_strength
 
-if not SECRET_KEY or SECRET_KEY == DEFAULT_SECRET:
-    raise RuntimeError(
-        "FATAL: SECRET_KEY is not set or is the default value. "
-        "Set a strong, unique SECRET_KEY environment variable before starting the application."
-    )
+config.validate()
 
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 1440
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:////tmp/taskinator.db")
+SECRET_KEY = config.SECRET_KEY
+ALGORITHM = config.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = config.ACCESS_TOKEN_EXPIRE_MINUTES
+DATABASE_URL = config.DATABASE_URL
 
 # Ensure data directory exists for SQLite
 if DATABASE_URL.startswith('sqlite'):
@@ -104,11 +100,8 @@ class Project(Base):
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # --- Auth Helpers ---
-def verify_password(plain, hashed): return pwd_context.verify(plain, hashed)
-def hash_password(pw): return pwd_context.hash(pw)
 
 def create_token(data: dict) -> str:
     to_encode = data.copy()
@@ -168,8 +161,7 @@ def _check_csrf(request: Request, form_csrf: str = ""):
     if not provided or not secrets.compare_digest(provided, cookie_token):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token missing or invalid")
 
-def validate_password_strength(password: str) -> bool:
-    return len(password) >= 8
+# --- Removed: duplicate validate_password_strength; imported from backend.security ---
 
 def validate_task_enums(priority: str, category: str):
     if priority not in ("LOW", "MEDIUM", "HIGH"):
@@ -183,7 +175,7 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     print("✅ Database initialized")
 
-    admin_password = os.getenv("ADMIN_PASSWORD")
+    admin_password = config.ADMIN_PASSWORD
     if admin_password:
         if len(admin_password) < 8:
             print("⚠️ ADMIN_PASSWORD is too short (min 8 characters). Admin user will not be auto-created.")
@@ -242,7 +234,7 @@ async def add_charset_header(request: Request, call_next):
     return response
 
 # --- Helper: Response with CSRF cookie ---
-COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"
+COOKIE_SECURE = config.COOKIE_SECURE
 
 def set_access_token_cookie(resp: Response, token: str):
     resp.set_cookie("access_token", token, httponly=True, samesite="lax", secure=COOKIE_SECURE)
@@ -784,4 +776,4 @@ def setup_admin(request: Request, username: str = Form(...), password: str = For
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=9900)
+    uvicorn.run(app, host=config.HOST, port=config.PORT)

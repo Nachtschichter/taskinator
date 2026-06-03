@@ -5,12 +5,15 @@ services:
     build: .
     container_name: taskinator
     ports:
-      - "9900:9900"
+      - "${PORT:-9900}:9900"
     volumes:
       - taskinator-db:/app/data
     environment:
       # IMPORTANT: Set these in a .env file or export them before docker compose up.
       # The application will REFUSE to start with the default SECRET_KEY.
+      - PROTOCOL=${PROTOCOL:-http}
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-9900}
       - SECRET_KEY=${SECRET_KEY}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - DATABASE_URL=sqlite:////app/data/taskinator.db
@@ -18,7 +21,7 @@ services:
       - COOKIE_SECURE=${COOKIE_SECURE:-false}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:9900/login')"]
+      test: ["CMD", "python", "-c", "import urllib.request, os; host=os.getenv('HOST','localhost'); port=os.getenv('PORT','9900'); proto=os.getenv('PROTOCOL','http'); urllib.request.urlopen(f'{proto}://{host}:{port}/login')"]
       interval: 30s
       timeout: 10s
       retries: 3

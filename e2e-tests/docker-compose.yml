@@ -7,5 +7,8 @@ services:
       - ./results:/app/results
     environment:
       - TEST_BASE_URL=${TEST_BASE_URL:-http://localhost:9900}
+      - PROTOCOL=${PROTOCOL:-http}
+      - HOST=${HOST:-localhost}
+      - PORT=${PORT:-9900}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Taskinator2026!}
     network_mode: host
